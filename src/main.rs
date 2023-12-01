@@ -29,7 +29,7 @@ async fn get_profile(Path(profile_name): Path<String>) -> Html<String> {
         name: profile_name,
         items: orders_example,
     };
-    Html(render!(include_str!("../assets/templates/index.html")))
+    Html(render!(include_str!("../assets/templates/index.html"), profile => profile_example))
 }
 
 #[shuttle_runtime::main]
