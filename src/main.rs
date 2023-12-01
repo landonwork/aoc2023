@@ -1,3 +1,4 @@
+//
 use axum::{response::Html, routing::get, Router, extract::Path};
 use minijinja::render;
 use serde::{Serialize, Deserialize};
@@ -32,7 +33,7 @@ async fn get_profile(Path(profile_name): Path<String>) -> Html<String> {
         name: profile_name,
         items: orders_example,
     };
-    Html(render!(include_str!("../assets/templates/index.html"), profile => profile_example))
+    Html(render!(include_str!("../assets/templates/profile.html"), profile => profile_example))
 }
 
 #[shuttle_runtime::main]
