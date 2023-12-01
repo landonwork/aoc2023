@@ -1,17 +1,20 @@
 use axum::{response::Html, routing::get, Router, extract::Path};
 use minijinja::render;
+use serde::{Serialize, Deserialize};
 
 async fn home() -> Html<&'static str> {
     Html("hello world!")
 }
 
 #[allow(dead_code)]
+#[derive(Serialize, Deserialize)]
 struct Profile {
     name: String,
     items: Vec<Item>
 }
 
 #[allow(dead_code)]
+#[derive(Serialize, Deserialize)]
 struct Item {
     name: String,
 }
