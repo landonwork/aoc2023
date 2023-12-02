@@ -1,6 +1,6 @@
 mod solutions;
 
-pub use solutions::day1;
+pub use solutions::*;
 
 pub struct Solutions(pub String, pub String);
 

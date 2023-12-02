@@ -9,7 +9,7 @@ use axum::{
 use minijinja::render;
 use tower_http::services::ServeDir;
 
-use aoc2023::{day1, Solutions};
+use aoc2023::{day1, day2, Solutions};
 
 async fn home() -> Html<String> {
     let days: Vec<String> = fs::read_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/src/solutions"))
@@ -31,7 +31,7 @@ async fn home() -> Html<String> {
 async fn solve(Path(day): Path<i32>) -> Html<String> {
     let function: fn() -> Solutions = match day {
         1 => day1::solve,
-        // 2 => day2::solve,
+        2 => day2::solve,
         // 3 => day3::solve,
         // 4 => day4::solve,
         // 5 => day5::solve,
