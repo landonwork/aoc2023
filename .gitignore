@@ -5,5 +5,4 @@ Cargo.lock
 node_modules
 package.json
 package-lock.json
-input
 git_token.txt

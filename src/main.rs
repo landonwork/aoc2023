@@ -1,4 +1,4 @@
-use std::{borrow::Cow, fs};
+use std::{borrow::Cow, fs, net::SocketAddr};
 
 use axum::{
     extract::Path,
@@ -68,12 +68,17 @@ async fn solve(Path(day): Path<i32>) -> Html<String> {
     ))
 }
 
-#[shuttle_runtime::main]
-async fn main() -> shuttle_axum::ShuttleAxum {
+#[tokio::main]
+async fn main() {
     let router = Router::new()
         .route("/", get(home))
         .route("/day/:day", get(solve))
         .nest_service("/static", ServeDir::new("static"));
 
-    Ok(router.into())
+    let addr = SocketAddr::from(([0, 0, 0, 0], 9876));
+    println!("listening on {}", &addr);
+    axum::Server::bind(&addr)
+        .serve(router.into_make_service())
+        .await
+        .unwrap();
 }
