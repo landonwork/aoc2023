@@ -16,6 +16,7 @@ struct Subset {
 
 impl FromStr for Game {
     type Err = ();
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (game, sets) = s.split_once(": ").unwrap();
         let number: i32 = game.split_at(5).1.parse().unwrap();
@@ -28,6 +29,7 @@ impl FromStr for Game {
 
 impl FromStr for Subset {
     type Err = ();
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut slf = Self::default();
         s.split(", ").for_each(|color| match color.split_once(" ").unwrap() {
@@ -43,6 +45,7 @@ impl FromStr for Subset {
 fn parse_input() -> Vec<String> {
     fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/input/day2.txt"))
         .unwrap()
+        .trim()
         .split("\n")
         .map(|x| x.to_owned())
         .collect()
@@ -66,13 +69,35 @@ fn part1(input: &[String]) -> i32 {
 }
 
 fn part2(input: &[String]) -> i32 {
-    todo!()
+    input
+        .iter()
+        .map(|line| line.parse().unwrap())
+        .map(|Game { number: _, sets }| {
+            let min = sets.into_iter().reduce(|set1, set2| {
+                Subset {
+                    blue: std::cmp::max(set1.blue, set2.blue),
+                    green: std::cmp::max(set1.green, set2.green),
+                    red: std::cmp::max(set1.red, set2.red)
+                }
+            }).unwrap();
+            min.red * min.green * min.blue
+        })
+        .sum()
 }
 
 pub fn solve() -> Solutions {
     let input = parse_input();
     let solution1 = part1(&input);
-    // let solution2 = part2(&input);
-    // Solutions(solution1.to_string(), solution2.to_string())
-    Solutions(solution1.to_string(), String::new())
+    let solution2 = part2(&input);
+    Solutions(solution1.to_string(), solution2.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parsing() {
+        let _: Vec<Game> = parse_input().iter().map(|line| line.parse().unwrap()).collect();
+    }
 }
