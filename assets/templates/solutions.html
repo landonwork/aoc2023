@@ -1,0 +1,22 @@
+<!doctype html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, inital-scale=1">
+		<title>Advent of Code 2023</title>
+		<meta name="description" content="A basic HTML5 Template for new projects">
+		<meta name="author" content="thebrilliot">
+
+		{% block css -%}
+			<link href="/static/css/tailwind.css" rel="stylesheet">
+		{%- endblock css %}
+	</head>
+	<body class="bg-blue-600">
+		<h1>Advent of Code 2023: Day {{ day }}</h1>
+		<ul>
+			<li>Part 1: {{ part1 }}</li>
+			<li>Part 2: {{ part2 }}</li>
+		</ul>
+	</body>
+</html>

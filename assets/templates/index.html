@@ -4,18 +4,19 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, inital-scale=1">
-		<title>A Basic HTML5 Template</title>
+		<title>Advent of Code 2023</title>
 		<meta name="description" content="A basic HTML5 Template for new projects">
 		<meta name="author" content="thebrilliot">
-		<link href="css/tailwind.css" rel="stylesheet">
+
+		{% block css -%}
+			<link href="/static/css/tailwind.css" rel="stylesheet">
+		{%- endblock css %}
 	</head>
 	<body class="bg-blue-600">
-		<h1 class="text-3xl">Profile of {{ profile.name|title }}</h1>
-		<p>This is a template example to show some functionality</p>
-		<h2>Items</h2>
+		<h1>Advent of Code 2023</h1>
 		<ul>
-			{% for item in profile.items %}
-			<li>{{ item.name }}</li>
+			{% for day in days %}
+			<li><a href="/day/{{ day }}">Day {{ day }}</a></li>
 			{% endfor %}
 		</ul>
 	</body>

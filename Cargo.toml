@@ -3,6 +3,11 @@ name = "lrwaoc2023"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "aoc2023"
+path = "src/lib.rs"
+crate-type = ["lib"]
+
 [dependencies]
 axum = "0.6.20"
 minijinja = { version = "1.0.10", features = ["builtins"] }
@@ -10,4 +15,5 @@ serde = { version = "1.0.193", features = ["derive"] }
 shuttle-axum = "0.34.0"
 shuttle-runtime = "0.34.0"
 tokio = "1.28.2"
+tower-http = { version = "0.4.4", features = ["fs"] }
 tracing = "0.1.40"
