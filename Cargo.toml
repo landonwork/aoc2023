@@ -8,8 +8,13 @@ name = "aoc2023"
 path = "src/lib.rs"
 crate-type = ["lib"]
 
+[[bin]]
+name = "aoc2023-server"
+path = "src/main.rs"
+
 [dependencies]
 axum = "0.6.20"
+ctrlc = "3.4.1"
 minijinja = { version = "1.0.10", features = ["builtins"] }
 serde = { version = "1.0.193", features = ["derive"] }
 tokio = { version = "1.28.2", features = ["rt", "macros", "rt-multi-thread"] }

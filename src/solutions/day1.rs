@@ -2,8 +2,8 @@ use std::{env, fs};
 
 use crate::Solutions;
 
-fn parse_input() -> Vec<String> {
-    fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/input/day1.txt"))
+fn read_input() -> Vec<String> {
+    fs::read_to_string("input/day1.txt")
         .unwrap()
         .split("\n")
         .map(|x| x.to_owned())
@@ -71,7 +71,7 @@ fn parse_line(line: &str, digits: Option<(i32, i32)>) -> (i32, i32) {
 }
 
 pub fn solve() -> Solutions {
-    let input = parse_input();
+    let input = read_input();
     let solution1 = part1(&input);
     let solution2 = part2(&input);
     Solutions(solution1.to_string(), solution2.to_string())

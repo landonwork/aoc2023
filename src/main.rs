@@ -7,12 +7,37 @@ use axum::{
     Router,
 };
 use minijinja::render;
+use tokio::select;
 use tower_http::services::ServeDir;
 
-use aoc2023::{day1, day2, Solutions};
+use aoc2023::*;
+
+#[tokio::main]
+async fn main() {
+    let (sender, mut receiver) = tokio::sync::mpsc::channel::<()>(1);
+
+    ctrlc::set_handler(move || { let _ = sender.blocking_send(()); }).unwrap();
+
+    let router = Router::new()
+        .route("/", get(home))
+        .route("/day/:day", get(solve))
+        .nest_service("/static", ServeDir::new("static"));
+
+    let addr = SocketAddr::from(([0, 0, 0, 0], 80));
+    println!("listening on {}", &addr);
+    select! {
+        _ = async {
+            axum::Server::bind(&addr)
+                .serve(router.into_make_service())
+                .await
+                .unwrap();
+        } => {},
+        _ = receiver.recv() => {}
+    }
+}
 
 async fn home() -> Html<String> {
-    let days: Vec<String> = fs::read_dir(concat!(env!("CARGO_MANIFEST_DIR"), "/src/solutions"))
+    let days: Vec<String> = fs::read_dir("src/solutions")
         .unwrap()
         .filter_map(|res| match &res.unwrap().file_name().to_string_lossy() {
             Cow::Borrowed("mod.rs") => None,
@@ -32,7 +57,7 @@ async fn solve(Path(day): Path<i32>) -> Html<String> {
     let function: fn() -> Solutions = match day {
         1 => day1::solve,
         2 => day2::solve,
-        // 3 => day3::solve,
+        3 => day3::solve,
         // 4 => day4::solve,
         // 5 => day5::solve,
         // 6 => day6::solve,
@@ -66,19 +91,4 @@ async fn solve(Path(day): Path<i32>) -> Html<String> {
         part1 => part1,
         part2 => part2,
     ))
-}
-
-#[tokio::main]
-async fn main() {
-    let router = Router::new()
-        .route("/", get(home))
-        .route("/day/:day", get(solve))
-        .nest_service("/static", ServeDir::new("static"));
-
-    let addr = SocketAddr::from(([0, 0, 0, 0], 9876));
-    println!("listening on {}", &addr);
-    axum::Server::bind(&addr)
-        .serve(router.into_make_service())
-        .await
-        .unwrap();
 }

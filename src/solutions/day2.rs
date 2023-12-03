@@ -43,7 +43,7 @@ impl FromStr for Subset {
 }
 
 fn parse_input() -> Vec<String> {
-    fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/input/day2.txt"))
+    fs::read_to_string("input/day2.txt")
         .unwrap()
         .trim()
         .split("\n")
