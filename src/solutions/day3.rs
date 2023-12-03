@@ -74,7 +74,6 @@ fn read_input() -> Vec<String> {
 
 fn part1(input: &[String]) -> i32 {
     let schematic: Schematic = input.into();
-    println!("{:?}", &schematic);
     schematic.numbers
         .iter()
         .filter_map(|number| {
