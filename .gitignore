@@ -1,8 +1,9 @@
-/target
 .shuttle-storage
-Secrets*.toml
+/target
 Cargo.lock
-node_modules
-package.json
-package-lock.json
+Secrets*.toml
 git_token.txt
+input
+node_modules
+package-lock.json
+package.json
