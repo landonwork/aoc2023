@@ -6,7 +6,14 @@ module.exports = {
 	  "./assets/templates/**/*.html"
   ],
   theme: {
-    extend: {},
+    extend: {
+		colors: {
+			my_color: '#4dcb7a',
+		},
+		fontSize: {
+			my_size: '1rem',
+		}
+	},
   },
   plugins: [],
 }

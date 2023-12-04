@@ -14,3 +14,6 @@ docker-run:
 
 docker-run-detached:
 	docker run -d -p 80:80 --init landonwork/aoc2023:latest
+
+npx:
+	npx tailwindcss -i assets/tailwind.css -o static/css/tailwind.css
