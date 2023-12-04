@@ -137,12 +137,12 @@ mod tests {
 ......755.
 ...$.*....
 .664.598..".replace("\r", "").trim().split("\n").map(|x| x.to_owned()).collect();
-        assert_eq!(part1(&input), 4361);
+        assert_eq!(part1(&input.as_slice().into()), 4361);
     }
 
     #[test]
     fn test_length() {
         let length = 467i32.checked_ilog10().unwrap() as i32;
-        assert_eq!(0 + length, 3);
+        assert_eq!(1 + length, 3);
     }
 }
