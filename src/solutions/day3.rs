@@ -72,35 +72,52 @@ fn read_input() -> Vec<String> {
         .collect()
 }
 
-fn part1(input: &[String]) -> i32 {
-    let schematic: Schematic = input.into();
+fn part1(schematic: &Schematic) -> i32 {
     schematic.numbers
         .iter()
         .filter_map(|number| {
-            let length = number.value.checked_ilog10().unwrap_or(0) as i32;
-            let pos_min = number.pos - 1;
-            let pos_max = number.pos + 1 + length;
-            let row_min = number.row - 1;
-            let row_max = number.row + 1;
 
             schematic.symbols
                 .iter()
-                .any(|symbol| {
-                    symbol.pos >= pos_min && symbol.pos <= pos_max && symbol.row >= row_min && symbol.row <= row_max
-                })
+                .any(|symbol| symbol.next_to(number))
                 .then_some(number.value)
         })
         .sum()
 }
 
-fn part2(input: &[String]) {
+impl Symbol {
+    fn next_to(&self, number: &Number) -> bool {
+        let length = number.value.checked_ilog10().unwrap_or(0) as i32;
+        let pos_min = number.pos - 1;
+        let pos_max = number.pos + 1 + length;
+        let row_min = number.row - 1;
+        let row_max = number.row + 1;
+        self.pos >= pos_min && self.pos <= pos_max
+            && self.row >= row_min && self.row <= row_max
+    }
+}
+
+fn part2(schematic: &Schematic) -> i32 {
+    schematic.symbols
+        .iter()
+        .filter_map(|symbol| {
+            let gears: Option<[i32; 2]> = schematic.numbers
+                .iter()
+                .filter_map(|number| symbol.next_to(number).then_some(number.value))
+                .collect::<Vec<i32>>()
+                .try_into()
+                .ok();
+            gears
+        })
+        .map(|[a, b]| a * b)
+        .sum()
 }
 
 pub fn solve() -> Solutions {
-    let input = read_input();
-    let solution1 = part1(&input);
-    let solution2 = part2(&input);
-    Solutions(solution1.to_string(), String::new())
+    let schematic = Into::into(read_input().as_slice());
+    let solution1 = part1(&schematic);
+    let solution2 = part2(&schematic);
+    Solutions(solution1.to_string(), solution2.to_string())
 }
 
 #[cfg(test)]
