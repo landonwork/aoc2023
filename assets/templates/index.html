@@ -1,23 +1,5 @@
-<!doctype html>
-
-<html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, inital-scale=1">
-		<title>Advent of Code 2023</title>
-		<meta name="description" content="A basic HTML5 Template for new projects">
-		<meta name="author" content="thebrilliot">
-
-		{% block css -%}
-			<link href="/static/css/tailwind.css" rel="stylesheet">
-		{%- endblock css %}
-	</head>
-	<body class="bg-blue-600">
-		<h1>Advent of Code 2023</h1>
-		<ul>
-			{% for day in days %}
-			<li><a href="/day/{{ day }}">Day {{ day }}</a></li>
-			{% endfor %}
-		</ul>
-	</body>
-</html>
+<ul>
+  {% for day in days %}
+  <li><a href="/day/{{ day }}">Day {{ day }}</a></li>
+  {% endfor %}
+</ul>

@@ -1,4 +1,4 @@
-use std::{borrow::Cow, fs, net::SocketAddr};
+use std::{fs, net::SocketAddr};
 
 use axum::{
     extract::Path,
@@ -37,33 +37,43 @@ async fn main() {
 }
 
 async fn home() -> Html<String> {
-    let days: Vec<String> = fs::read_dir("src/solutions")
+    let mut days: Vec<String> = fs::read_dir("src/solutions")
         .unwrap()
-        .filter_map(|res| match &res.unwrap().file_name().to_string_lossy() {
-            Cow::Borrowed("mod.rs") => None,
-            file_name => {
-
-                file_name
-                    .strip_suffix(".rs")
-                    .and_then(|x| x.strip_prefix("day").map(|day| day.to_string()))
-            }
-        })
+        .filter_map(|res| res.unwrap()
+            .file_name()
+            .to_string_lossy()
+            .strip_prefix("day")
+            .map(|day|
+                 day
+                .replace(".rs", "")
+                .to_string()
+            )
+        )
         .collect();
+    days.sort();
+    let days: Vec<String> = days.into_iter().map(|day| day.replace("0", "")).collect();
 
-    Html(render!(include_str!("../assets/templates/index.html"), days => days))
+    Html(layout!(
+        "../assets/layouts/root.html",
+        "../assets/layouts/app.html",
+        render!(
+            include_str!("../assets/templates/index.html"),
+            days => days
+        )
+    ))
 }
 
 async fn solve(Path(day): Path<i32>) -> Html<String> {
     let function: fn() -> Solutions = match day {
-        1 => day1::solve,
-        2 => day2::solve,
-        3 => day3::solve,
-        // 4 => day4::solve,
-        // 5 => day5::solve,
-        // 6 => day6::solve,
-        // 7 => day7::solve,
-        // 8 => day8::solve,
-        // 9 => day9::solve,
+        1 => day01::solve,
+        2 => day02::solve,
+        3 => day03::solve,
+        // 4 => day04::solve,
+        // 5 => day05::solve,
+        // 6 => day06::solve,
+        // 7 => day07::solve,
+        // 8 => day08::solve,
+        // 9 => day09::solve,
         // 10 => day10::solve,
         // 11 => day11::solve,
         // 12 => day12::solve,
@@ -85,10 +95,14 @@ async fn solve(Path(day): Path<i32>) -> Html<String> {
 
     let Solutions(part1, part2) = function();
 
-    Html(render!(
-        include_str!("../assets/templates/solutions.html"),
-        day => day,
-        part1 => part1,
-        part2 => part2,
+    Html(layout!(
+        "../assets/layouts/root.html",
+        "../assets/layouts/app.html",
+        render!(
+            include_str!("../assets/templates/solutions.html"),
+            day => day,
+            part1 => part1,
+            part2 => part2,
+        )
     ))
 }

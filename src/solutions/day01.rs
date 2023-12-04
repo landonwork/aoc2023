@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::fs;
 
 use crate::Solutions;
 

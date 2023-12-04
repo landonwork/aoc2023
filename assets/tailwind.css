@@ -1,3 +1,20 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@tailwind "tailwindcss/base";
+@tailwind "tailwindcss/components";
+@tailwind "tailwindcss/utilities";
+
+.aoc-gradient {
+    background-image: linear-gradient(to bottom, #641A61, #551653, #340E33, #010101);
+    height: 225px;
+}
+
+a {
+    @apply mt-2 mr-2 text-white text-[1rm] font-brand font-bold hover:text-red-600;
+}
+
+button {
+    @apply mt-2 mr-2 text-white text-[1rm] font-brand font-bold hover:text-red-600;
+}
+
+header {
+    @apply flex justify-between items-center px-6 py-3 bg-blue-950 text-white;
+}

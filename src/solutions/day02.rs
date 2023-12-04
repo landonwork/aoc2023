@@ -1,4 +1,4 @@
-use std::{env, fs, str::FromStr};
+use std::{fs, str::FromStr};
 
 use crate::Solutions;
 
