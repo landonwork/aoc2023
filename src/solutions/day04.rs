@@ -1,6 +1,6 @@
-use std::{fs, str::FromStr};
+use std::str::FromStr;
 
-use crate::Solutions;
+use crate::{read_input, Solutions};
 
 type Winning = Vec<[u8; 3]>;
 type Given = Vec<[u8; 3]>;
@@ -46,16 +46,6 @@ impl Card {
 }
 
 
-fn read_input() -> Vec<String> {
-    fs::read_to_string("input/day04.txt")
-        .unwrap()
-        .replace("\r", "")
-        .trim()
-        .split("\n")
-        .map(|x| x.to_owned())
-        .collect()
-}
-
 fn part1(cards: &[Card]) -> i64 {
     cards.iter()
         .map(|card| card.score())
@@ -82,7 +72,7 @@ fn part2(cards: Vec<Card>) -> i64 {
 }
 
 pub fn solve() -> Solutions {
-    let input = read_input();
+    let input = read_input("04");
     let cards: Vec<_> = input.iter().map(|line| line.parse().unwrap()).collect();
     let solution1 = part1(cards.as_slice());
     let solution2 = part2(cards);

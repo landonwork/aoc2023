@@ -7,16 +7,72 @@ use axum::{
     Router,
 };
 use minijinja::render;
-use tokio::select;
+use tokio::{select, io::{AsyncBufReadExt, BufReader}, net::TcpListener};
 use tower_http::services::ServeDir;
 
 use aoc2023::*;
 
 #[tokio::main]
 async fn main() {
-    let (sender, mut receiver) = tokio::sync::mpsc::channel::<()>(1);
+    // Very first thing is set up the shutdown
+    let (sender, mut powershell) = tokio::sync::broadcast::channel::<()>(1);
+    let mut readers = sender.subscribe();
+    let mut receiver = sender.subscribe();
 
-    ctrlc::set_handler(move || { let _ = sender.blocking_send(()); }).unwrap();
+
+    ctrlc::set_handler(move || { let _ = sender.send(()); }).unwrap();
+
+
+    // start tailwind when in dev mode
+    // this is always going to fail on the server and that's fine
+    match tokio::process::Command::new("C:/Program Files/nodejs/npx.cmd")
+        .arg("tailwindcss")
+        .arg("-i")
+        .arg("assets/tailwind.css")
+        .arg("-o")
+        .arg("static/css/tailwind.css")
+        .arg("--watch")
+        .kill_on_drop(true)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+    {
+        Ok(mut tailwind) => {
+            println!("tailwind successfully started");
+            let mut stdout_reader = BufReader::new(tailwind.stdout.take().unwrap()).lines();
+            let mut stderr_reader = BufReader::new(tailwind.stderr.take().unwrap()).lines();
+
+            tokio::spawn(async move {
+                select! {
+                    res = tailwind.wait() => { match res {
+                        Ok(_) => {}
+                        Err(error) => {
+                            println!("tailwind crashed: {}", error);
+                        }
+                    }},
+                    _exit = powershell.recv() => {}
+                }
+            });
+
+            tokio::spawn(async move { loop {
+                select! {
+                    out = stdout_reader.next_line() => {
+                        if !matches!(out.as_ref().map(|op| op.as_ref().map(|s| s.as_str())), Ok(None) | Ok(Some(""))) {
+                            println!("tailwind stdout: {:?}", out);
+                        }
+                    },
+                    err = stderr_reader.next_line() => {
+                        if !matches!(err.as_ref().map(|op| op.as_ref().map(|s| s.as_str())), Ok(None) | Ok(Some(""))) {
+                            println!("tailwind stderr: {:?}", err);
+                        }
+                    },
+                    _exit = readers.recv() => { break; }
+                }
+            }});
+        }
+        Err(_) => { println!("tailwind failed"); }
+    }
+
 
     let router = Router::new()
         .route("/", get(home))
@@ -24,11 +80,12 @@ async fn main() {
         .nest_service("/static", ServeDir::new("static"));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
+    let listener = TcpListener::bind(addr).await.unwrap();
     println!("listening on {}", &addr);
+
     select! {
         _ = async {
-            axum::Server::bind(&addr)
-                .serve(router.into_make_service())
+            axum::serve(listener, router)
                 .await
                 .unwrap();
         } => {},

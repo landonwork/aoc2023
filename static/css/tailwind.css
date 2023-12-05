@@ -538,10 +538,6 @@ video {
   position: relative;
 }
 
-.block {
-  display: block;
-}
-
 .flex {
   display: flex;
 }
@@ -627,8 +623,16 @@ button:hover {
   color: rgb(220 38 38 / var(--tw-text-opacity));
 }
 
+main {
+  margin: 0.75rem;
+  --tw-bg-opacity: 1;
+  background-color: rgb(34 197 94 / var(--tw-bg-opacity));
+  padding: 0.75rem;
+}
+
 header {
   display: flex;
+  width: 100%;
   align-items: center;
   justify-content: space-between;
   --tw-bg-opacity: 1;
@@ -637,6 +641,7 @@ header {
   padding-right: 1.5rem;
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
+  text-align: center;
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
 }

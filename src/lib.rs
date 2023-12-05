@@ -22,3 +22,13 @@ macro_rules! layout {
         $inner
     };
 }
+
+pub fn read_input(day: &str) -> Vec<String> {
+    std::fs::read_to_string(format!("input/day{day}.txt"))
+        .unwrap()
+        .replace("\r", "")
+        .trim()
+        .split("\n")
+        .map(|x| x.to_owned())
+        .collect()
+}

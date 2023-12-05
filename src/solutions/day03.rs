@@ -1,6 +1,4 @@
-use std::fs;
-
-use crate::Solutions;
+use crate::{read_input, Solutions};
 
 #[derive(Debug)]
 struct Schematic {
@@ -62,16 +60,6 @@ impl From<&[String]> for Schematic {
     }
 }
 
-fn read_input() -> Vec<String> {
-    fs::read_to_string("input/day3.txt")
-        .unwrap()
-        .replace("\r", "")
-        .trim()
-        .split("\n")
-        .map(|x| x.to_owned())
-        .collect()
-}
-
 fn part1(schematic: &Schematic) -> i32 {
     schematic.numbers
         .iter()
@@ -103,7 +91,7 @@ fn part2(schematic: &Schematic) -> i32 {
         .filter_map(|symbol| {
             let gears: Option<[i32; 2]> = schematic.numbers
                 .iter()
-                .filter_map(|number| symbol.next_to(number).then_some(number.value))
+                .filter_map(|number| (symbol.symbol == b'*' && symbol.next_to(number)).then_some(number.value))
                 .collect::<Vec<i32>>()
                 .try_into()
                 .ok();
@@ -114,7 +102,7 @@ fn part2(schematic: &Schematic) -> i32 {
 }
 
 pub fn solve() -> Solutions {
-    let schematic = Into::into(read_input().as_slice());
+    let schematic = Into::into(read_input("03").as_slice());
     let solution1 = part1(&schematic);
     let solution2 = part2(&schematic);
     Solutions(solution1.to_string(), solution2.to_string())

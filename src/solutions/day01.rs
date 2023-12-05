@@ -1,14 +1,4 @@
-use std::fs;
-
-use crate::Solutions;
-
-fn read_input() -> Vec<String> {
-    fs::read_to_string("input/day1.txt")
-        .unwrap()
-        .split("\n")
-        .map(|x| x.to_owned())
-        .collect()
-}
+use crate::{read_input, Solutions};
 
 fn part1(input: &[String]) -> i32 {
     input.iter()
@@ -71,7 +61,7 @@ fn parse_line(line: &str, digits: Option<(i32, i32)>) -> (i32, i32) {
 }
 
 pub fn solve() -> Solutions {
-    let input = read_input();
+    let input = read_input("01");
     let solution1 = part1(&input);
     let solution2 = part2(&input);
     Solutions(solution1.to_string(), solution2.to_string())

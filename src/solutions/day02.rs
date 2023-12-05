@@ -1,6 +1,6 @@
-use std::{fs, str::FromStr};
+use std::str::FromStr;
 
-use crate::Solutions;
+use crate::{read_input, Solutions};
 
 struct Game {
     number: i32,
@@ -42,15 +42,6 @@ impl FromStr for Subset {
     }
 }
 
-fn parse_input() -> Vec<String> {
-    fs::read_to_string("input/day2.txt")
-        .unwrap()
-        .trim()
-        .split("\n")
-        .map(|x| x.to_owned())
-        .collect()
-}
-
 fn part1(input: &[String]) -> i32 {
     input
         .iter()
@@ -86,7 +77,7 @@ fn part2(input: &[String]) -> i32 {
 }
 
 pub fn solve() -> Solutions {
-    let input = parse_input();
+    let input = read_input("02");
     let solution1 = part1(&input);
     let solution2 = part2(&input);
     Solutions(solution1.to_string(), solution2.to_string())
@@ -98,6 +89,6 @@ mod tests {
 
     #[test]
     fn test_parsing() {
-        let _: Vec<Game> = parse_input().iter().map(|line| line.parse().unwrap()).collect();
+        let _: Vec<Game> = read_input("day02").iter().map(|line| line.parse().unwrap()).collect();
     }
 }
