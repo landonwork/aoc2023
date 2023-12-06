@@ -89,6 +89,6 @@ mod tests {
 
     #[test]
     fn test_parsing() {
-        let _: Vec<Game> = read_input("day02").iter().map(|line| line.parse().unwrap()).collect();
+        let _: Vec<Game> = read_input("02").iter().map(|line| line.parse().unwrap()).collect();
     }
 }
