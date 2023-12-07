@@ -32,3 +32,7 @@ pub fn read_input(day: &str) -> Vec<String> {
         .map(|x| x.to_owned())
         .collect()
 }
+
+// pub trait Day {
+//     fn solve() -> Solutions;
+// }

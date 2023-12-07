@@ -7,7 +7,7 @@ use axum::{
     Router,
 };
 use minijinja::render;
-use tokio::{select, io::{AsyncBufReadExt, BufReader}, net::TcpListener};
+use tokio::{select, net::TcpListener};
 use tower_http::services::ServeDir;
 
 use aoc2023::*;
@@ -15,64 +15,59 @@ use aoc2023::*;
 #[tokio::main]
 async fn main() {
     // Very first thing is set up the shutdown
-    let (sender, mut powershell) = tokio::sync::broadcast::channel::<()>(1);
-    let mut readers = sender.subscribe();
-    let mut receiver = sender.subscribe();
-
-
-    ctrlc::set_handler(move || { let _ = sender.send(()); }).unwrap();
-
+    let (sender, mut receiver) = tokio::sync::broadcast::channel::<()>(1);
 
     // start tailwind when in dev mode
     // this is always going to fail on the server and that's fine
-    match tokio::process::Command::new("C:/Program Files/nodejs/npx.cmd")
-        .arg("tailwindcss")
-        .arg("-i")
-        .arg("assets/tailwind.css")
-        .arg("-o")
-        .arg("static/css/tailwind.css")
-        .arg("--watch")
-        .kill_on_drop(true)
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .spawn()
+    #[cfg(debug_assertions)]
     {
-        Ok(mut tailwind) => {
-            println!("tailwind successfully started");
-            let mut stdout_reader = BufReader::new(tailwind.stdout.take().unwrap()).lines();
-            let mut stderr_reader = BufReader::new(tailwind.stderr.take().unwrap()).lines();
+        use tokio::io::{AsyncBufReadExt, BufReader};
+        let mut powershell = sender.subscribe();
+        let mut readers = sender.subscribe();
 
-            tokio::spawn(async move {
-                select! {
-                    res = tailwind.wait() => { match res {
-                        Ok(_) => {}
-                        Err(error) => {
-                            println!("tailwind crashed: {}", error);
-                        }
-                    }},
-                    _exit = powershell.recv() => {}
-                }
-            });
+        match tokio::process::Command::new("C:/Program Files/nodejs/npx.cmd")
+            .arg("tailwindcss")
+            .arg("-i")
+            .arg("assets/tailwind.css")
+            .arg("-o")
+            .arg("static/css/tailwind.css")
+            .arg("--watch")
+            .kill_on_drop(true)
+            .stderr(std::process::Stdio::piped())
+            .spawn()
+        {
+            Ok(mut tailwind) => {
+                println!("tailwind successfully started");
+                let mut stderr_reader = BufReader::new(tailwind.stderr.take().unwrap()).lines();
 
-            tokio::spawn(async move { loop {
-                select! {
-                    out = stdout_reader.next_line() => {
-                        if !matches!(out.as_ref().map(|op| op.as_ref().map(|s| s.as_str())), Ok(None) | Ok(Some(""))) {
-                            println!("tailwind stdout: {:?}", out);
-                        }
-                    },
-                    err = stderr_reader.next_line() => {
-                        if !matches!(err.as_ref().map(|op| op.as_ref().map(|s| s.as_str())), Ok(None) | Ok(Some(""))) {
-                            println!("tailwind stderr: {:?}", err);
-                        }
-                    },
-                    _exit = readers.recv() => { break; }
-                }
-            }});
+                tokio::spawn(async move {
+                    select! {
+                        res = tailwind.wait() => { match res {
+                            Ok(_) => {}
+                            Err(error) => {
+                                println!("tailwind crashed: {}", error);
+                            }
+                        }},
+                        _exit = powershell.recv() => {}
+                    }
+                });
+
+                tokio::spawn(async move { loop {
+                    select! {
+                        err = stderr_reader.next_line() => {
+                            if !matches!(err.as_ref().map(|op| op.as_ref().map(|s| s.as_str())), Ok(None) | Ok(Some(""))) {
+                                println!("tailwind stderr: {:?}", err);
+                            }
+                        },
+                        _exit = readers.recv() => { break; }
+                    }
+                }});
+            }
+            Err(_) => { println!("tailwind failed"); }
         }
-        Err(_) => { println!("tailwind failed"); }
     }
 
+    ctrlc::set_handler(move || { let _ = sender.send(()); }).unwrap();
 
     let router = Router::new()
         .route("/", get(home))
@@ -127,7 +122,7 @@ async fn solve(Path(day): Path<i32>) -> Html<String> {
         3 => day03::solve,
         4 => day04::solve,
         5 => day05::solve,
-        // 6 => day06::solve,
+        6 => day06::solve,
         // 7 => day07::solve,
         // 8 => day08::solve,
         // 9 => day09::solve,
