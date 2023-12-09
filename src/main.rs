@@ -3,7 +3,7 @@ use std::{fs, net::SocketAddr};
 use axum::{
     extract::Path,
     response::Html,
-    routing::get,
+    routing::{get, post},
     Router,
 };
 use minijinja::render;
@@ -72,6 +72,7 @@ async fn main() {
     let router = Router::new()
         .route("/", get(home))
         .route("/day/:day", get(solve))
+        .route("/day07/part1", post(day07::part1))
         .nest_service("/static", ServeDir::new("static"));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
@@ -123,7 +124,7 @@ async fn solve(Path(day): Path<i32>) -> Html<String> {
         4 => day04::solve,
         5 => day05::solve,
         6 => day06::solve,
-        // 7 => day07::solve,
+        7 => day07::solve,
         // 8 => day08::solve,
         // 9 => day09::solve,
         // 10 => day10::solve,
@@ -145,16 +146,29 @@ async fn solve(Path(day): Path<i32>) -> Html<String> {
         _ => { return Html(String::new()); }
     };
 
-    let Solutions(part1, part2) = function();
+    if day == 7 {
+        let Solutions(_part1, part2) = function();
 
-    Html(layout!(
-        "../assets/layouts/root.html",
-        "../assets/layouts/app.html",
-        render!(
-            include_str!("../assets/templates/solutions.html"),
-            day => day,
-            part1 => part1,
-            part2 => part2,
-        )
-    ))
+        Html(layout!(
+            "../assets/layouts/root.html",
+            "../assets/layouts/app.html",
+            render!(
+                include_str!("../assets/templates/day07.html"),
+                part2 => part2,
+            )
+        ))
+    } else {
+        let Solutions(part1, part2) = function();
+
+        Html(layout!(
+            "../assets/layouts/root.html",
+            "../assets/layouts/app.html",
+            render!(
+                include_str!("../assets/templates/solutions.html"),
+                day => day,
+                part1 => part1,
+                part2 => part2,
+            )
+        ))
+    }
 }

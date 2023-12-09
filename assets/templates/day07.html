@@ -1,0 +1,23 @@
+<div id="day07">
+	<h1>Day 7</h1>
+	<h2>Part 1</h2>
+	<div>
+        <form id="part1">
+			<textarea placeholder="Paste your input here..." required name="input"></textarea>
+			<button
+				hx-post="/day07/part1"
+				hx-trigger="click"
+				hx-target="#solution1"
+				hx-swap="innerHTML"
+			>
+				Get solution
+			</button>
+        </form>
+        <div id="solution1"></div>
+	</div>
+	<h2>Part 2</h2>
+	<div id="part2">
+		{{ part2|safe }}
+	</div>
+	</ul>
+<div>

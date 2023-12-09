@@ -7,6 +7,14 @@
     height: 225px;
 }
 
+#part1 {
+	@apply m-2 p-3 rounded bg-yellow-500;
+}
+
+#part2 {
+	@apply m-2 p-3 rounded bg-yellow-500;
+}
+
 a {
     @apply mt-2 mr-2 text-white text-[1rm] font-bold hover:text-red-600;
 }
