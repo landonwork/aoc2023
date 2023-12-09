@@ -3,7 +3,7 @@ mod solutions;
 pub use solutions::*;
 
 use axum::{response::Html, Form};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 pub struct Solutions(pub String, pub String);
 
@@ -36,23 +36,23 @@ pub fn read_input(day: &str) -> Vec<String> {
         .collect()
 }
 
-fn lines(s: &str) -> Vec<&str> {
+pub fn lines(s: &str) -> Vec<&str> {
     s.trim().split("\n").collect()
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Part1 {
-    input: String
+    input: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Part2 {
-    input: String
+    input: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Extra {
-    input: String
+    input: String,
 }
 
 pub trait Day {

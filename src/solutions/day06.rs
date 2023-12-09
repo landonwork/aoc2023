@@ -1,12 +1,15 @@
 use crate::{read_input, Solutions};
 
 fn part1(input: &[String]) -> i64 {
-    let times: Vec<_> = input[0].split_whitespace().filter_map(|s| s.parse().ok()).collect();
-    let distances: Vec<_> = input[1].split_whitespace().filter_map(|s| s.parse().ok()).collect();
-    times.into_iter()
-        .zip(distances)
-        .map(ways_to_win)
-        .product()
+    let times: Vec<_> = input[0]
+        .split_whitespace()
+        .filter_map(|s| s.parse().ok())
+        .collect();
+    let distances: Vec<_> = input[1]
+        .split_whitespace()
+        .filter_map(|s| s.parse().ok())
+        .collect();
+    times.into_iter().zip(distances).map(ways_to_win).product()
 }
 
 fn ways_to_win((time, dist): (f64, f64)) -> i64 {
@@ -22,8 +25,20 @@ fn ways_to_win((time, dist): (f64, f64)) -> i64 {
 }
 
 fn part2(input: &[String]) -> i64 {
-    let time = input[0].split_once(":").unwrap().1.replace(" ", "").parse::<f64>().unwrap();
-    let dist = input[1].split_once(":").unwrap().1.replace(" ", "").parse::<f64>().unwrap();
+    let time = input[0]
+        .split_once(":")
+        .unwrap()
+        .1
+        .replace(" ", "")
+        .parse::<f64>()
+        .unwrap();
+    let dist = input[1]
+        .split_once(":")
+        .unwrap()
+        .1
+        .replace(" ", "")
+        .parse::<f64>()
+        .unwrap();
     ways_to_win((time, dist))
 }
 

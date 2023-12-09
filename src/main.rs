@@ -7,7 +7,7 @@ use axum::{
     Router,
 };
 use minijinja::render;
-use tokio::{select, net::TcpListener};
+use tokio::{net::TcpListener, select};
 use tower_http::services::ServeDir;
 
 use aoc2023::*;
@@ -52,27 +52,33 @@ async fn main() {
                     }
                 });
 
-                tokio::spawn(async move { loop {
-                    select! {
-                        err = stderr_reader.next_line() => {
-                            if !matches!(err.as_ref().map(|op| op.as_ref().map(|s| s.as_str())), Ok(None) | Ok(Some(""))) {
-                                println!("tailwind stderr: {:?}", err);
-                            }
-                        },
-                        _exit = readers.recv() => { break; }
+                tokio::spawn(async move {
+                    loop {
+                        select! {
+                            err = stderr_reader.next_line() => {
+                                if !matches!(err.as_ref().map(|op| op.as_ref().map(|s| s.as_str())), Ok(None) | Ok(Some(""))) {
+                                    println!("tailwind stderr: {:?}", err);
+                                }
+                            },
+                            _exit = readers.recv() => { break; }
+                        }
                     }
-                }});
+                });
             }
-            Err(_) => { println!("tailwind failed"); }
+            Err(_) => {
+                println!("tailwind failed");
+            }
         }
     }
 
-    ctrlc::set_handler(move || { let _ = sender.send(()); }).unwrap();
+    ctrlc::set_handler(move || {
+        let _ = sender.send(());
+    })
+    .unwrap();
 
     let router = Router::new()
         .route("/", get(home))
         .route("/day/:day", get(solve))
-        .route("/day07/part1", post(day07::part1))
         .nest_service("/static", ServeDir::new("static"));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
@@ -92,16 +98,13 @@ async fn main() {
 async fn home() -> Html<String> {
     let mut days: Vec<String> = fs::read_dir("src/solutions")
         .unwrap()
-        .filter_map(|res| res.unwrap()
-            .file_name()
-            .to_string_lossy()
-            .strip_prefix("day")
-            .map(|day|
-                 day
-                .replace(".rs", "")
-                .to_string()
-            )
-        )
+        .filter_map(|res| {
+            res.unwrap()
+                .file_name()
+                .to_string_lossy()
+                .strip_prefix("day")
+                .map(|day| day.replace(".rs", "").to_string())
+        })
         .collect();
     days.sort();
     let days: Vec<String> = days.into_iter().map(|day| day.replace("0", "")).collect();
@@ -125,8 +128,8 @@ async fn solve(Path(day): Path<i32>) -> Html<String> {
         5 => day05::solve,
         6 => day06::solve,
         7 => day07::solve,
-        // 8 => day08::solve,
-        // 9 => day09::solve,
+        8 => day08::solve,
+        9 => day09::solve,
         // 10 => day10::solve,
         // 11 => day11::solve,
         // 12 => day12::solve,
@@ -143,32 +146,21 @@ async fn solve(Path(day): Path<i32>) -> Html<String> {
         // 23 => day23::solve,
         // 24 => day24::solve,
         // 25 => day25::solve,
-        _ => { return Html(String::new()); }
+        _ => {
+            return Html(String::new());
+        }
     };
 
-    if day == 7 {
-        let Solutions(_part1, part2) = function();
+    let Solutions(part1, part2) = function();
 
-        Html(layout!(
-            "../assets/layouts/root.html",
-            "../assets/layouts/app.html",
-            render!(
-                include_str!("../assets/templates/day07.html"),
-                part2 => part2,
-            )
-        ))
-    } else {
-        let Solutions(part1, part2) = function();
-
-        Html(layout!(
-            "../assets/layouts/root.html",
-            "../assets/layouts/app.html",
-            render!(
-                include_str!("../assets/templates/solutions.html"),
-                day => day,
-                part1 => part1,
-                part2 => part2,
-            )
-        ))
-    }
+    Html(layout!(
+        "../assets/layouts/root.html",
+        "../assets/layouts/app.html",
+        render!(
+            include_str!("../assets/templates/solutions.html"),
+            day => day,
+            part1 => part1,
+            part2 => part2,
+        )
+    ))
 }

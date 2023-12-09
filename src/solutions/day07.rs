@@ -1,10 +1,9 @@
-use axum::{response::Html, Form};
-use serde::{Serialize, Deserialize};
+use std::cmp::Ordering;
 
-use crate::{Solutions, lines};
+use crate::{Solutions, read_input};
 
 #[repr(u8)]
-#[derive(Ord, PartialOrd, PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 enum Type {
     High = 1,
     Pair = 2,
@@ -15,8 +14,22 @@ enum Type {
     Five = 7,
 }
 
+impl PartialOrd for Type {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        (*self as u8).partial_cmp(&(*other as u8))
+    }
+}
+
+
+impl Ord for Type {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        (*self as u8).cmp(&(*other as u8))
+    }
+}
+
+
 #[repr(u8)]
-#[derive(Ord, PartialOrd, PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 enum Card {
     II = 2,
     III = 3,
@@ -31,6 +44,19 @@ enum Card {
     Q = 12,
     K = 13,
     A = 14,
+}
+
+impl PartialOrd for Card {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        (*self as u8).partial_cmp(&(*other as u8))
+    }
+}
+
+
+impl Ord for Card {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        (*self as u8).cmp(&(*other as u8))
+    }
 }
 
 impl From<u8> for Card {
@@ -49,74 +75,95 @@ impl From<u8> for Card {
             b'Q' => Card::Q,
             b'K' => Card::K,
             b'A' => Card::A,
-            _ => unreachable!()
+            _ => unreachable!("{}", value as char),
         }
     }
 }
 
-#[derive(PartialEq, Eq)]
-struct Hand<'a> {
+#[derive(PartialEq, Eq, Debug)]
+struct Hand {
     r#type: Type,
-    cards: &'a [u8],
+    cards: [Card; 5],
+    bid: usize,
 }
 
-impl<'a> From<&'a str> for Hand<'a> {
-    fn from(s: &'a str) -> Self {
-        let bytes = s.as_bytes();
-        Hand { r#type: hand_type(bytes), cards: bytes }
+impl PartialOrd for Hand {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        if let res @ Some(Ordering::Less) | res @ Some(Ordering::Greater) = self.r#type.partial_cmp(&other.r#type) {
+            res
+        } else {
+            self.cards.partial_cmp(&other.cards)
+        }
+    }
+}
+
+impl Ord for Hand {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        if let res @ Ordering::Less | res @ Ordering::Greater = self.r#type.cmp(&other.r#type) {
+            res
+        } else {
+            self.cards.cmp(&other.cards)
+        }
     }
 }
 
 fn hand_type(cards: &[u8]) -> Type {
     let mut counts = [(0u8, 0u8); 4];
-    cards.iter()
-        .for_each(|b| {
-            counts.iter_mut()
-                .find_map(|(key, val)| {
-                    if b == key || key == &0u8 {
-                        *key = *b;
-                        *val += 1;
-                        Some(())
-                    } else {
-                        None
-                    }
-                });
+    cards.iter().for_each(|b| {
+        counts.iter_mut().find_map(|(key, val)| {
+            if b == key || key == &0u8 {
+                *key = *b;
+                *val += 1;
+                Some(())
+            } else {
+                None
+            }
         });
-    counts.iter().fold(Type::High, |r#type, (_, val)| match (r#type, val) {
-        (_, 5) => Type::Five,
-        (_, 4) => Type::Four,
-        (Type::Three, 2) | (Type::Pair, 3) => Type::Full,
-        (Type::Pair, 2) => Type::TwoPair,
-        (_, 3) => Type::Three,
-        (_, 2) => Type::Pair,
-        (r#type, _) => r#type,
-    })
+    });
+    counts
+        .iter()
+        .fold(Type::High, |r#type, (_, val)| match (r#type, val) {
+            (_, 5) => Type::Five,
+            (_, 4) => Type::Four,
+            (Type::Three, 2) | (Type::Pair, 3) => Type::Full,
+            (Type::Pair, 2) => Type::TwoPair,
+            (_, 3) => Type::Three,
+            (_, 2) => Type::Pair,
+            (r#type, _) => r#type,
+        })
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Part1 { input: String }
-pub async fn part1(Form(Part1 { input }): Form<Part1>) -> Html<String> {
-    let lines = lines(&input);
-    let mut indices = (1..=lines.len()).collect::<Vec<_>>();
-    indices.sort_by_key(|i| {
-        let byte_slice = lines[i-1][..5].as_bytes();
-        (hand_type(byte_slice), byte_slice.iter().map(|&b| b.into()).collect::<Vec<Card>>())
-    });
-    let ans: usize = indices.into_iter()
-        .zip(lines)
-        .map(|(ind, line)| -> usize {
-            let bid: usize = line.split_once(" ").unwrap().1.parse().unwrap();
-            ind * bid
+pub fn part1(lines: &[String]) -> usize {
+    let mut hands: Vec<_> = lines.iter()
+        .map(|line| {
+            let (cards, bid) = line.split_once(" ").unwrap();
+            Hand {
+                r#type: hand_type(cards.as_bytes()),
+                cards: cards.as_bytes().iter().map(|&b| b.into()).collect::<Vec<Card>>().try_into().unwrap(),
+                bid: bid.parse().unwrap()
+            }
         })
-        .sum();
-    Html(format!("Solution: {ans}"))
+        .collect();
+    hands.sort();
+
+    let cards: Vec<_> = hands.iter().filter_map(|hand| (hand.r#type == Type::High).then_some(&hand.cards)).collect();
+    let mut sorted_cards = cards.clone();
+    sorted_cards.sort();
+    assert_eq!(cards, sorted_cards);
+
+    hands
+        .into_iter()
+        .enumerate()
+        .map(|(ind, hand)| -> usize {
+            (ind + 1) * hand.bid
+        })
+        .sum()
 }
 
 pub fn solve() -> Solutions {
-    Solutions(
-        String::new(),
-        String::new()
-    )
+    let input = read_input("07");
+    let solution1 = part1(&input);
+    Solutions(solution1.to_string(), String::new())
 }
 
 #[cfg(test)]
@@ -138,5 +185,41 @@ mod tests {
             assert_eq!(hand_type(hand.as_bytes()), ans);
         }
     }
-}
 
+    #[test]
+    fn test_sort_card() {
+        use Card::*;
+        let test_hands = vec![
+            [II, III, II, II, II],
+            [II, IV, II, II, II],
+            [II, IX, II, II, II],
+            [II, X, II, II, II],
+            [II, J, II, II, II],
+            [II, A, II, II, II],
+            [III, II, II, II, II],
+            [IV, II, II, II, II],
+            [IX, II, II, II, II],
+            [X, II, II, II, II],
+            [J, II, II, II, II],
+            [A, II, II, II, II],
+        ];
+
+        let mut actual = vec![
+            [II, IX, II, II, II],
+            [II, X, II, II, II],
+            [A, II, II, II, II],
+            [IV, II, II, II, II],
+            [III, II, II, II, II],
+            [II, J, II, II, II],
+            [II, A, II, II, II],
+            [IX, II, II, II, II],
+            [X, II, II, II, II],
+            [J, II, II, II, II],
+            [II, III, II, II, II],
+            [II, IV, II, II, II],
+        ];
+        actual.sort();
+
+        assert_eq!(actual, test_hands);
+    }
+}

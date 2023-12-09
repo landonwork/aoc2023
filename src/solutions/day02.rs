@@ -4,7 +4,7 @@ use crate::{read_input, Solutions};
 
 struct Game {
     number: i32,
-    sets: Vec<Subset>
+    sets: Vec<Subset>,
 }
 
 #[derive(Default)]
@@ -20,9 +20,7 @@ impl FromStr for Game {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (game, sets) = s.split_once(": ").unwrap();
         let number: i32 = game.split_at(5).1.parse().unwrap();
-        let sets = sets.split("; ")
-            .map(|set| set.parse().unwrap())
-            .collect();
+        let sets = sets.split("; ").map(|set| set.parse().unwrap()).collect();
         Ok(Self { number, sets })
     }
 }
@@ -32,12 +30,19 @@ impl FromStr for Subset {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut slf = Self::default();
-        s.split(", ").for_each(|color| match color.split_once(" ").unwrap() {
-            (num, "green") => { slf.green = num.parse().unwrap(); },
-            (num, "blue") => { slf.blue = num.parse().unwrap(); },
-            (num, "red") => { slf.red = num.parse().unwrap(); },
-            _ => unreachable!()
-        });
+        s.split(", ")
+            .for_each(|color| match color.split_once(" ").unwrap() {
+                (num, "green") => {
+                    slf.green = num.parse().unwrap();
+                }
+                (num, "blue") => {
+                    slf.blue = num.parse().unwrap();
+                }
+                (num, "red") => {
+                    slf.red = num.parse().unwrap();
+                }
+                _ => unreachable!(),
+            });
         Ok(slf)
     }
 }
@@ -47,13 +52,14 @@ fn part1(input: &[String]) -> i32 {
         .iter()
         .map(|line| line.parse().unwrap())
         .filter_map(|Game { number, sets }| {
-            let max = sets.into_iter().reduce(|set1, set2| {
-                Subset {
+            let max = sets
+                .into_iter()
+                .reduce(|set1, set2| Subset {
                     blue: std::cmp::max(set1.blue, set2.blue),
                     green: std::cmp::max(set1.green, set2.green),
-                    red: std::cmp::max(set1.red, set2.red)
-                }
-            }).unwrap();
+                    red: std::cmp::max(set1.red, set2.red),
+                })
+                .unwrap();
             (max.red <= 12 && max.green <= 13 && max.blue <= 14).then_some(number)
         })
         .sum()
@@ -64,13 +70,14 @@ fn part2(input: &[String]) -> i32 {
         .iter()
         .map(|line| line.parse().unwrap())
         .map(|Game { number: _, sets }| {
-            let min = sets.into_iter().reduce(|set1, set2| {
-                Subset {
+            let min = sets
+                .into_iter()
+                .reduce(|set1, set2| Subset {
                     blue: std::cmp::max(set1.blue, set2.blue),
                     green: std::cmp::max(set1.green, set2.green),
-                    red: std::cmp::max(set1.red, set2.red)
-                }
-            }).unwrap();
+                    red: std::cmp::max(set1.red, set2.red),
+                })
+                .unwrap();
             min.red * min.green * min.blue
         })
         .sum()
@@ -89,6 +96,9 @@ mod tests {
 
     #[test]
     fn test_parsing() {
-        let _: Vec<Game> = read_input("02").iter().map(|line| line.parse().unwrap()).collect();
+        let _: Vec<Game> = read_input("02")
+            .iter()
+            .map(|line| line.parse().unwrap())
+            .collect();
     }
 }

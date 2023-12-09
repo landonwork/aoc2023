@@ -26,7 +26,11 @@ impl FromStr for Range {
             .collect::<Vec<i64>>()
             .try_into()
             .unwrap();
-        Ok(Self { dest, src, src_end: src + length })
+        Ok(Self {
+            dest,
+            src,
+            src_end: src + length,
+        })
     }
 }
 
@@ -42,11 +46,15 @@ impl Range {
 
 fn part1(mut seeds: Vec<i64>, maps: &[&[Range]]) -> i64 {
     for map in maps.iter() {
-        seeds = seeds.into_iter()
-            .map(|x| map.iter()
-                .find_map(|range| (range.src <= x && x <= range.src_end).then_some(range.translate(x)))
-                .unwrap_or(x)
-            )
+        seeds = seeds
+            .into_iter()
+            .map(|x| {
+                map.iter()
+                    .find_map(|range| {
+                        (range.src <= x && x <= range.src_end).then_some(range.translate(x))
+                    })
+                    .unwrap_or(x)
+            })
             .collect();
     }
     seeds.into_iter().min().unwrap()
@@ -57,7 +65,8 @@ fn part2(mut seeds: Vec<(i64, i64)>, maps: &[&[Range]]) -> i64 {
         let cap = seeds.len() << 1;
         let mut old_seeds = std::mem::replace(&mut seeds, Vec::with_capacity(cap));
         while let Some((min, max)) = old_seeds.pop() {
-            let seed = map.iter()
+            let seed = map
+                .iter()
                 .find_map(|range| {
                     if range.contains(min) && range.contains(max) {
                         Some((range.translate(min), range.translate(max)))
@@ -85,17 +94,32 @@ fn part2(mut seeds: Vec<(i64, i64)>, maps: &[&[Range]]) -> i64 {
 pub fn solve() -> Solutions {
     let input = read_input();
     let mut chunks = input.split("\n\n");
-    let seeds: Vec<_> = chunks.next()
+    let seeds: Vec<_> = chunks
+        .next()
         .and_then(|x| x.strip_prefix("seeds: "))
         .unwrap()
         .split(" ")
         .map(|x| x.parse().unwrap())
         .collect();
-    let maps: Vec<Vec<Range>> = chunks.map(|chunk| chunk.split("\n").skip(1).map(|line| line.parse().unwrap()).collect()).collect();
+    let maps: Vec<Vec<Range>> = chunks
+        .map(|chunk| {
+            chunk
+                .split("\n")
+                .skip(1)
+                .map(|line| line.parse().unwrap())
+                .collect()
+        })
+        .collect();
     let maps_refs = maps.iter().map(|vec| vec.as_slice()).collect::<Vec<_>>();
 
     let solution1 = part1(seeds.clone(), maps_refs.as_slice());
-    let solution2 = part2(seeds.chunks_exact(2).map(|slice| (slice[0], slice[0] + slice[1])).collect(), maps_refs.as_slice());
+    let solution2 = part2(
+        seeds
+            .chunks_exact(2)
+            .map(|slice| (slice[0], slice[0] + slice[1]))
+            .collect(),
+        maps_refs.as_slice(),
+    );
 
     Solutions(solution1.to_string(), solution2.to_string())
 }
@@ -140,17 +164,32 @@ humidity-to-location map:
 60 56 37
 56 93 4";
         let mut chunks = input.split("\n\n");
-        let seeds: Vec<_> = chunks.next()
+        let seeds: Vec<_> = chunks
+            .next()
             .and_then(|x| x.strip_prefix("seeds: "))
             .unwrap()
             .split(" ")
             .map(|x| x.parse().unwrap())
             .collect();
-        let maps: Vec<Vec<Range>> = chunks.map(|chunk| chunk.split("\n").skip(1).map(|line| line.parse().unwrap()).collect()).collect();
+        let maps: Vec<Vec<Range>> = chunks
+            .map(|chunk| {
+                chunk
+                    .split("\n")
+                    .skip(1)
+                    .map(|line| line.parse().unwrap())
+                    .collect()
+            })
+            .collect();
         let maps_refs = maps.iter().map(|vec| vec.as_slice()).collect::<Vec<_>>();
 
         assert_eq!(
-            part2(seeds.chunks_exact(2).map(|slice| (slice[0], slice[0] + slice[1])).collect(), maps_refs.as_slice()),
+            part2(
+                seeds
+                    .chunks_exact(2)
+                    .map(|slice| (slice[0], slice[0] + slice[1]))
+                    .collect(),
+                maps_refs.as_slice()
+            ),
             46
         );
     }
