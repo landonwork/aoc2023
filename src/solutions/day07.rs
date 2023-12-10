@@ -1,6 +1,8 @@
 use std::cmp::Ordering;
 
-use crate::{Solutions, read_input};
+use axum::{response::Html, Form};
+
+use crate::{PartInput, Solutions, read_input};
 
 #[repr(u8)]
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
@@ -164,6 +166,12 @@ pub fn solve() -> Solutions {
     let input = read_input("07");
     let solution1 = part1(&input);
     Solutions(solution1.to_string(), String::new())
+}
+
+pub async fn handle_part1(Form(PartInput { input }): Form<PartInput>) -> Html<String> {
+    let input: Vec<_> = input.trim().split("\n").map(|x| x.to_owned()).collect();
+    let ans = part1(&input);
+    Html(ans.to_string())
 }
 
 #[cfg(test)]

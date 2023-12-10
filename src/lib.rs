@@ -2,7 +2,7 @@ mod solutions;
 
 pub use solutions::*;
 
-use axum::{response::Html, Form};
+// use axum::{response::Html, Form};
 use serde::{Deserialize, Serialize};
 
 pub struct Solutions(pub String, pub String);
@@ -41,22 +41,17 @@ pub fn lines(s: &str) -> Vec<&str> {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Part1 {
-    input: String,
+pub struct PartInput {
+    input: String
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Part2 {
-    input: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Extra {
-    input: String,
-}
-
-pub trait Day {
-    fn part1(input: Form<Part1>) -> Html<String>;
-    fn part2(input: Form<Part2>) -> Html<String>;
-    fn extra(input: Form<Extra>) -> Html<String>;
-}
+// pub trait Day {
+//     fn part1(input: Form<PartInput>) -> Html<String>;
+//     fn part2(input: Form<PartInput>) -> Html<String>;
+//     fn extra(input: Form<Extra>) -> Html<String>;
+// }
+//
+// pub trait DayExtra {
+//     type Input;
+//     fn extra(input: Form<Extra>) -> Html<String>;
+// }

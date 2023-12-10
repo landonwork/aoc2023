@@ -79,6 +79,7 @@ async fn main() {
     let router = Router::new()
         .route("/", get(home))
         .route("/day/:day", get(solve))
+        .route("/day07/part1", post(day07::handle_part1))
         .nest_service("/static", ServeDir::new("static"));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
@@ -153,14 +154,25 @@ async fn solve(Path(day): Path<i32>) -> Html<String> {
 
     let Solutions(part1, part2) = function();
 
-    Html(layout!(
-        "../assets/layouts/root.html",
-        "../assets/layouts/app.html",
-        render!(
-            include_str!("../assets/templates/solutions.html"),
-            day => day,
-            part1 => part1,
-            part2 => part2,
-        )
-    ))
+    if day == 7 {
+        Html(layout!(
+            "../assets/layouts/root.html",
+            "../assets/layouts/app.html",
+            render!(
+                include_str!("../assets/templates/day07.html"),
+                part2 => part2,
+            )
+        ))
+    } else {
+        Html(layout!(
+            "../assets/layouts/root.html",
+            "../assets/layouts/app.html",
+            render!(
+                include_str!("../assets/templates/solutions.html"),
+                day => day,
+                part1 => part1,
+                part2 => part2,
+            )
+        ))
+    }
 }
