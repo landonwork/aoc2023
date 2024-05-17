@@ -82,7 +82,11 @@ async fn main() {
         .route("/day/:day/part2", post(solve_part2))
         .nest_service("/static", ServeDir::new("static"));
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 80));
+    let addr = if cfg!(debug_assertions) {
+        SocketAddr::from(([127, 0, 0, 1], 80))
+    } else {
+        SocketAddr::from(([0, 0, 0, 0], 80))
+    };
     let listener = TcpListener::bind(addr).await.unwrap();
     println!("listening on {}", &addr);
 

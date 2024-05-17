@@ -19,14 +19,6 @@ macro_rules! layout {
     };
 }
 
-// #[macro_export]
-// macro_rules! day {
-//     ($day_num:literal) => {
-//         Box::new($crate::
-//     };
-// }
-
-
 pub fn read_input(day: &str) -> String {
     std::fs::read_to_string(format!("input/day{day}.txt"))
         .unwrap()
