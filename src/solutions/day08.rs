@@ -1,7 +1,46 @@
 use std::{collections::HashMap, str::FromStr, sync::Arc, thread::{self, JoinHandle}};
 
-use crate::{read_input, Solutions};
 use num::integer::lcm;
+
+use crate::{lines, Day};
+
+pub struct Day08;
+
+impl Day for Day08 {
+    async fn part1(input: String) -> String {
+        let lines = lines(&input);
+        let mut lines_iter = lines.iter();
+        let instructions: Arc<[u8]> = Arc::from(lines_iter.next().unwrap().trim().as_bytes());
+        let map: HashMap<[u8; 3], Node> = lines_iter
+            .skip(1)
+            .map(|line| {
+                (
+                    line.as_bytes()[..3].try_into().unwrap(),
+                    line[6..].parse().unwrap(),
+                )
+            })
+            .collect();
+
+        part1(&instructions, &map).to_string()
+    }
+
+    async fn part2(input: String) -> String {
+        let lines = lines(&input);
+        let mut lines_iter = lines.iter();
+        let instructions: Arc<[u8]> = Arc::from(lines_iter.next().unwrap().trim().as_bytes());
+        let map: HashMap<[u8; 3], Node> = lines_iter
+            .skip(1)
+            .map(|line| {
+                (
+                    line.as_bytes()[..3].try_into().unwrap(),
+                    line[6..].parse().unwrap(),
+                )
+            })
+            .collect();
+
+        part2(instructions, Arc::new(map)).to_string()
+    }
+}
 
 #[derive(Debug)]
 struct Node {
@@ -91,22 +130,4 @@ fn part2(instructions: Arc<[u8]>, map: Arc<HashMap<[u8; 3], Node>>) -> usize {
         .map(|handle| handle.join().unwrap())
         .reduce(lcm)
         .unwrap()
-}
-
-pub fn solve() -> Solutions {
-    let mut lines = read_input("08").into_iter();
-    let instructions: Arc<[u8]> = Arc::from(lines.next().unwrap().trim().as_bytes());
-    let map: HashMap<[u8; 3], Node> = lines
-        .skip(1)
-        .map(|line| {
-            (
-                line.as_bytes()[..3].try_into().unwrap(),
-                line[6..].parse().unwrap(),
-            )
-        })
-        .collect();
-    let solution1 = part1(&instructions, &map);
-    let solution2 = part2(instructions, Arc::new(map));
-
-    Solutions(solution1.to_string(), solution2.to_string())
 }

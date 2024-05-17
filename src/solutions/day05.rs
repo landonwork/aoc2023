@@ -1,12 +1,64 @@
 use std::str::FromStr;
 
-use crate::Solutions;
+use crate::Day;
+
+pub struct Day05;
+
+impl Day for Day05 {
+    async fn part1(input: String) -> String {
+        let mut chunks = input.trim().split("\n\n");
+        let seeds: Vec<_> = chunks
+            .next()
+            .unwrap()
+            .split(' ')
+            .skip(1)
+            .map(|x| x.parse().unwrap())
+            .collect();
+        let maps: Vec<Vec<Range>> = chunks
+            .map(|chunk| {
+                chunk
+                    .split('\n')
+                    .skip(1)
+                    .map(|line| line.parse().unwrap())
+                    .collect()
+            })
+            .collect();
+        let maps_refs = maps.iter().map(|vec| vec.as_slice()).collect::<Vec<_>>();
+
+        part1(seeds, &maps_refs).to_string()
+    }
+
+    async fn part2(input: String) -> String {
+        let mut chunks = input.trim().split("\n\n");
+        let seeds: Vec<i64> = chunks
+            .next()
+            .unwrap()
+            .split(' ')
+            .skip(1)
+            .map(|x| x.parse().unwrap())
+            .collect();
+        let seeds = seeds.chunks_exact(2).map(|arr| (arr[0], arr[0] + arr[1])).collect();
+        let maps: Vec<Vec<Range>> = chunks
+            .map(|chunk| {
+                chunk
+                    .split('\n')
+                    .skip(1)
+                    .map(|line| line.parse().unwrap())
+                    .collect()
+            })
+            .collect();
+        let maps_refs = maps.iter().map(|vec| vec.as_slice()).collect::<Vec<_>>();
+
+        part2(seeds, &maps_refs).to_string()
+    }
+}
+
 
 pub fn read_input() -> String {
-    std::fs::read_to_string(format!("input/day05.txt"))
+    std::fs::read_to_string("input/day05.txt")
         .unwrap()
         .trim()
-        .replace("\r", "")
+        .replace('\r', "")
 }
 
 #[derive(Debug)]
@@ -21,7 +73,7 @@ impl FromStr for Range {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let [dest, src, length] = s
-            .split(" ")
+            .split(' ')
             .map(|x| x.parse().unwrap())
             .collect::<Vec<i64>>()
             .try_into()
@@ -91,39 +143,6 @@ fn part2(mut seeds: Vec<(i64, i64)>, maps: &[&[Range]]) -> i64 {
     seeds.into_iter().map(|(min, _)| min).min().unwrap()
 }
 
-pub fn solve() -> Solutions {
-    let input = read_input();
-    let mut chunks = input.split("\n\n");
-    let seeds: Vec<_> = chunks
-        .next()
-        .and_then(|x| x.strip_prefix("seeds: "))
-        .unwrap()
-        .split(" ")
-        .map(|x| x.parse().unwrap())
-        .collect();
-    let maps: Vec<Vec<Range>> = chunks
-        .map(|chunk| {
-            chunk
-                .split("\n")
-                .skip(1)
-                .map(|line| line.parse().unwrap())
-                .collect()
-        })
-        .collect();
-    let maps_refs = maps.iter().map(|vec| vec.as_slice()).collect::<Vec<_>>();
-
-    let solution1 = part1(seeds.clone(), maps_refs.as_slice());
-    let solution2 = part2(
-        seeds
-            .chunks_exact(2)
-            .map(|slice| (slice[0], slice[0] + slice[1]))
-            .collect(),
-        maps_refs.as_slice(),
-    );
-
-    Solutions(solution1.to_string(), solution2.to_string())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -168,13 +187,13 @@ humidity-to-location map:
             .next()
             .and_then(|x| x.strip_prefix("seeds: "))
             .unwrap()
-            .split(" ")
+            .split(' ')
             .map(|x| x.parse().unwrap())
             .collect();
         let maps: Vec<Vec<Range>> = chunks
             .map(|chunk| {
                 chunk
-                    .split("\n")
+                    .split('\n')
                     .skip(1)
                     .map(|line| line.parse().unwrap())
                     .collect()

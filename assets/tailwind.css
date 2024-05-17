@@ -7,24 +7,33 @@
     height: 225px;
 }
 
-#part1 {
-	@apply m-2 p-3 rounded bg-yellow-500;
-}
-
-#part2 {
-	@apply m-2 p-3 rounded bg-yellow-500;
+.index {
+	@apply w-full flex flex-col flex-wrap items-center;
+	max-height: 300px;
 }
 
 a {
-    @apply mt-2 mr-2 text-white text-[1rm] font-bold hover:text-red-600;
+    @apply mt-2 mr-2 text-white text-[1rem] font-bold hover:text-red-600;
 }
 
+
 button {
-    @apply mt-2 mr-2 text-white text-[1rm] font-bold hover:text-red-600;
+	@apply border border-black bg-white m-2 p-2 text-[1rem] hover:font-bold hover:text-red-600 rounded hover:bg-slate-200;
+}
+
+body {
+	@apply bg-blue-600 antialiased flex flex-col items-center w-full;
 }
 
 main {
-	@apply p-3 m-3 bg-green-500;
+	@apply p-3 m-3 bg-green-500 w-[70%] flex flex-col items-center;
+	min-height: 300px;
+	min-width: 500px;
+}
+
+textarea {
+	@apply p-2;
+	min-width: 500px;
 }
 
 header {

@@ -1,5 +1,22 @@
 use num::{Integer, BigInt};
-use crate::{read_input, Solutions};
+use crate::{lines, Day};
+
+pub struct Day09;
+
+impl Day for Day09 {
+    async fn part1(input: String) -> String {
+        let sequences: Vec<Vec<i64>> = lines(&input).iter().map(|line| line.split(' ').map(|x| x.parse().unwrap()).collect()).collect();
+
+        part1(&sequences).to_string()
+    }
+
+    async fn part2(input: String) -> String {
+        let sequences: Vec<Vec<i64>> = lines(&input).iter().map(|line| line.split(' ').map(|x| x.parse().unwrap()).collect()).collect();
+
+        part2(&sequences).to_string()
+    }
+}
+
 
 fn part1(sequences: &[Vec<i64>]) -> BigInt {
     sequences.iter()
@@ -62,15 +79,6 @@ fn part2(sequences: &[Vec<i64>]) -> BigInt {
             Into::<BigInt>::into(ans)
         })
         .sum()
-}
-
-pub fn solve() -> Solutions {
-    let lines = read_input("09").into_iter();
-    let sequences: Vec<Vec<i64>> = lines.map(|line| line.split(" ").map(|x| x.parse().unwrap()).collect()).collect();
-    let solution1 = part1(&sequences);
-    let solution2 = part2(&sequences);
-
-    Solutions(solution1.to_string(), solution2.to_string())
 }
 
 #[cfg(test)]

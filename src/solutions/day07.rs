@@ -1,8 +1,41 @@
 use std::cmp::Ordering;
 
-use axum::{response::Html, Form};
+use crate::{Day, lines};
 
-use crate::{PartInput, Solutions, read_input};
+pub struct Day07;
+
+impl Day for Day07 {
+    async fn part1(input: String) -> String {
+        let lines = lines(&input);
+        let mut hands: Vec<_> = lines.iter()
+            .map(|line| {
+                let (cards, bid) = line.split_once(' ').unwrap();
+                Hand {
+                    r#type: hand_type(cards.as_bytes()),
+                    cards: cards.as_bytes().iter().map(|&b| b.into()).collect::<Vec<Card>>().try_into().unwrap(),
+                    bid: bid.parse().unwrap()
+                }
+            })
+            .collect();
+        hands.sort();
+
+        let cards: Vec<_> = hands.iter().filter_map(|hand| (hand.r#type == Type::High).then_some(&hand.cards)).collect();
+        let mut sorted_cards = cards.clone();
+        sorted_cards.sort();
+        assert_eq!(cards, sorted_cards);
+
+        let ans: usize = hands
+            .into_iter()
+            .enumerate()
+            .map(|(ind, hand)| -> usize {
+                (ind + 1) * hand.bid
+            })
+            .sum();
+
+        ans.to_string()
+    }
+}
+
 
 #[repr(u8)]
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
@@ -18,7 +51,7 @@ enum Type {
 
 impl PartialOrd for Type {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        (*self as u8).partial_cmp(&(*other as u8))
+        Some(self.cmp(other))
     }
 }
 
@@ -31,6 +64,7 @@ impl Ord for Type {
 
 
 #[repr(u8)]
+#[allow(clippy::upper_case_acronyms)]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 enum Card {
     II = 2,
@@ -50,7 +84,7 @@ enum Card {
 
 impl PartialOrd for Card {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        (*self as u8).partial_cmp(&(*other as u8))
+        Some(self.cmp(other))
     }
 }
 
@@ -91,11 +125,7 @@ struct Hand {
 
 impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        if let res @ Some(Ordering::Less) | res @ Some(Ordering::Greater) = self.r#type.partial_cmp(&other.r#type) {
-            res
-        } else {
-            self.cards.partial_cmp(&other.cards)
-        }
+        Some(self.cmp(other))
     }
 }
 
@@ -133,45 +163,6 @@ fn hand_type(cards: &[u8]) -> Type {
             (_, 2) => Type::Pair,
             (r#type, _) => r#type,
         })
-}
-
-pub fn part1(lines: &[String]) -> usize {
-    let mut hands: Vec<_> = lines.iter()
-        .map(|line| {
-            let (cards, bid) = line.split_once(" ").unwrap();
-            Hand {
-                r#type: hand_type(cards.as_bytes()),
-                cards: cards.as_bytes().iter().map(|&b| b.into()).collect::<Vec<Card>>().try_into().unwrap(),
-                bid: bid.parse().unwrap()
-            }
-        })
-        .collect();
-    hands.sort();
-
-    let cards: Vec<_> = hands.iter().filter_map(|hand| (hand.r#type == Type::High).then_some(&hand.cards)).collect();
-    let mut sorted_cards = cards.clone();
-    sorted_cards.sort();
-    assert_eq!(cards, sorted_cards);
-
-    hands
-        .into_iter()
-        .enumerate()
-        .map(|(ind, hand)| -> usize {
-            (ind + 1) * hand.bid
-        })
-        .sum()
-}
-
-pub fn solve() -> Solutions {
-    let input = read_input("07");
-    let solution1 = part1(&input);
-    Solutions(solution1.to_string(), String::new())
-}
-
-pub async fn handle_part1(Form(PartInput { input }): Form<PartInput>) -> Html<String> {
-    let input: Vec<_> = input.trim().split("\n").map(|x| x.to_owned()).collect();
-    let ans = part1(&input);
-    Html(ans.to_string())
 }
 
 #[cfg(test)]

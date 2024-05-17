@@ -3,6 +3,9 @@ set shell := ["powershell.exe", "-c"]
 default:
 	just --list
 
+test:
+	cargo test -- --nocapture
+
 docker-build:
 	docker image build -t landonwork/aoc2023:latest .
 

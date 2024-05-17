@@ -1,6 +1,21 @@
 use std::str::FromStr;
 
-use crate::{read_input, Solutions};
+use crate::{lines, Day};
+
+pub struct Day02;
+
+impl Day for Day02 {
+    async fn part1(input: String) -> String {
+        let lines = lines(&input);
+        part1(&lines).to_string()
+    }
+
+    async fn part2(input: String) -> String {
+        let lines = lines(&input);
+        part2(&lines).to_string()
+    }
+}
+
 
 struct Game {
     number: i32,
@@ -31,7 +46,7 @@ impl FromStr for Subset {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut slf = Self::default();
         s.split(", ")
-            .for_each(|color| match color.split_once(" ").unwrap() {
+            .for_each(|color| match color.split_once(' ').unwrap() {
                 (num, "green") => {
                     slf.green = num.parse().unwrap();
                 }
@@ -47,7 +62,7 @@ impl FromStr for Subset {
     }
 }
 
-fn part1(input: &[String]) -> i32 {
+fn part1(input: &[&str]) -> i32 {
     input
         .iter()
         .map(|line| line.parse().unwrap())
@@ -65,7 +80,7 @@ fn part1(input: &[String]) -> i32 {
         .sum()
 }
 
-fn part2(input: &[String]) -> i32 {
+fn part2(input: &[&str]) -> i32 {
     input
         .iter()
         .map(|line| line.parse().unwrap())
@@ -83,20 +98,14 @@ fn part2(input: &[String]) -> i32 {
         .sum()
 }
 
-pub fn solve() -> Solutions {
-    let input = read_input("02");
-    let solution1 = part1(&input);
-    let solution2 = part2(&input);
-    Solutions(solution1.to_string(), solution2.to_string())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::read_input;
 
     #[test]
     fn test_parsing() {
-        let _: Vec<Game> = read_input("02")
+        let _: Vec<Game> = lines(&read_input("02"))
             .iter()
             .map(|line| line.parse().unwrap())
             .collect();

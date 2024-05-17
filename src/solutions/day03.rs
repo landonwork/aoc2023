@@ -1,4 +1,17 @@
-use crate::{read_input, Solutions};
+use crate::{lines, Day};
+
+pub struct Day03;
+
+impl Day for Day03 {
+    async fn part1(input: String) -> String {
+        part1(&to_schematic(&input)).to_string()
+    }
+
+    async fn part2(input: String) -> String {
+        part2(&to_schematic(&input)).to_string()
+    }
+}
+
 
 #[derive(Debug)]
 struct Schematic {
@@ -20,8 +33,8 @@ struct Symbol {
     symbol: u8,
 }
 
-impl From<&[String]> for Schematic {
-    fn from(lines: &[String]) -> Self {
+impl From<&[&str]> for Schematic {
+    fn from(lines: &[&str]) -> Self {
         let mut numbers = Vec::new();
         let mut symbols = Vec::new();
         lines.iter().enumerate().for_each(|(row, line)| {
@@ -31,7 +44,7 @@ impl From<&[String]> for Schematic {
                     mut b @ b'0'..=b'9' => {
                         let mut value = 0;
                         // It pains me that `while let` and `if let` cannot have guards
-                        while matches!(b, b'0'..=b'9') {
+                        while b.is_ascii_digit() {
                             value = value * 10 + (b - b'0') as i32;
                             iter.next();
                             if let Some((_, next)) = iter.peek() {
@@ -110,11 +123,8 @@ fn part2(schematic: &Schematic) -> i32 {
         .sum()
 }
 
-pub fn solve() -> Solutions {
-    let schematic = Into::into(read_input("03").as_slice());
-    let solution1 = part1(&schematic);
-    let solution2 = part2(&schematic);
-    Solutions(solution1.to_string(), solution2.to_string())
+fn to_schematic(input: &str) -> Schematic {
+    Into::into(lines(input).as_slice())
 }
 
 #[cfg(test)]
@@ -123,7 +133,7 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        let input: Vec<String> = "
+        let input = "
 467..114..
 ...*......
 ..35..633.
@@ -133,13 +143,8 @@ mod tests {
 ..592.....
 ......755.
 ...$.*....
-.664.598.."
-            .replace("\r", "")
-            .trim()
-            .split("\n")
-            .map(|x| x.to_owned())
-            .collect();
-        assert_eq!(part1(&input.as_slice().into()), 4361);
+.664.598..";
+        assert_eq!(part1(&lines(input).as_slice().into()), 4361);
     }
 
     #[test]

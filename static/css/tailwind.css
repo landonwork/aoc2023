@@ -538,6 +538,10 @@ video {
   position: relative;
 }
 
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
 .flex {
   display: flex;
 }
@@ -566,14 +570,13 @@ video {
   justify-content: space-between;
 }
 
-.bg-blue-600 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(37 99 235 / var(--tw-bg-opacity));
-}
-
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem;
+}
+
+.font-bold {
+  font-weight: 700;
 }
 
 .text-red-600 {
@@ -595,29 +598,22 @@ video {
   height: 225px;
 }
 
-#part1 {
-  margin: 0.5rem;
-  border-radius: 0.25rem;
-  --tw-bg-opacity: 1;
-  background-color: rgb(234 179 8 / var(--tw-bg-opacity));
-  padding: 0.75rem;
-}
-
-#part2 {
-  margin: 0.5rem;
-  border-radius: 0.25rem;
-  --tw-bg-opacity: 1;
-  background-color: rgb(234 179 8 / var(--tw-bg-opacity));
-  padding: 0.75rem;
+.index {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  max-height: 300px;
 }
 
 a {
   margin-top: 0.5rem;
   margin-right: 0.5rem;
+  font-size: 1rem;
   font-weight: 700;
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
-  color: 1rm;
 }
 
 a:hover {
@@ -626,24 +622,52 @@ a:hover {
 }
 
 button {
-  margin-top: 0.5rem;
-  margin-right: 0.5rem;
-  font-weight: 700;
-  --tw-text-opacity: 1;
-  color: rgb(255 255 255 / var(--tw-text-opacity));
-  color: 1rm;
+  margin: 0.5rem;
+  border-radius: 0.25rem;
+  border-width: 1px;
+  --tw-border-opacity: 1;
+  border-color: rgb(0 0 0 / var(--tw-border-opacity));
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+  padding: 0.5rem;
+  font-size: 1rem;
 }
 
 button:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(226 232 240 / var(--tw-bg-opacity));
+  font-weight: 700;
   --tw-text-opacity: 1;
   color: rgb(220 38 38 / var(--tw-text-opacity));
 }
 
+body {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  --tw-bg-opacity: 1;
+  background-color: rgb(37 99 235 / var(--tw-bg-opacity));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 main {
   margin: 0.75rem;
+  display: flex;
+  width: 70%;
+  flex-direction: column;
+  align-items: center;
   --tw-bg-opacity: 1;
   background-color: rgb(34 197 94 / var(--tw-bg-opacity));
   padding: 0.75rem;
+  min-height: 300px;
+  min-width: 500px;
+}
+
+textarea {
+  padding: 0.5rem;
+  min-width: 500px;
 }
 
 header {

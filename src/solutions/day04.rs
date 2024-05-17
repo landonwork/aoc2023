@@ -1,6 +1,21 @@
 use std::str::FromStr;
 
-use crate::{read_input, Solutions};
+use crate::{lines, Day};
+
+pub struct Day04;
+
+impl Day for Day04 {
+    async fn part1(input: String) -> String {
+        let cards: Vec<_> = lines(&input).iter().map(|line| line.parse().unwrap()).collect();
+        part1(&cards).to_string()
+    }
+
+    async fn part2(input: String) -> String {
+        let cards: Vec<_> = lines(&input).iter().map(|line| line.parse().unwrap()).collect();
+        part2(cards).to_string()
+    }
+}
+
 
 type Winning = Vec<[u8; 3]>;
 type Given = Vec<[u8; 3]>;
@@ -15,7 +30,7 @@ impl FromStr for Card {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (winning, given) = s.split_once(":").unwrap().1.split_once(" |").unwrap();
+        let (winning, given) = s.split_once(':').unwrap().1.split_once(" |").unwrap();
 
         let winning = winning
             .as_bytes()
@@ -63,22 +78,13 @@ fn part2(cards: Vec<Card>) -> i64 {
         let copies = *copies;
 
         for j in 0..num {
-            cards.get_mut(i + j as usize + 1).map(|(_, n)| {
+            if let Some((_, n)) = cards.get_mut(i + j as usize + 1) {
                 *n += copies;
-            });
+            }
         }
     }
 
     cards.into_iter().map(|(_, num)| num).sum()
-}
-
-pub fn solve() -> Solutions {
-    let input = read_input("04");
-    let cards: Vec<_> = input.iter().map(|line| line.parse().unwrap()).collect();
-    let solution1 = part1(cards.as_slice());
-    let solution2 = part2(cards);
-
-    Solutions(solution1.to_string(), solution2.to_string())
 }
 
 #[cfg(test)]
@@ -97,7 +103,7 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 ";
         let cards = input
             .trim()
-            .split("\n")
+            .split('\n')
             .map(|line| line.parse().unwrap())
             .collect();
         assert_eq!(30, part2(cards));

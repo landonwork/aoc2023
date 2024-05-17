@@ -2,9 +2,9 @@ use std::{fs, net::SocketAddr};
 
 use axum::{
     extract::Path,
-    response::Html,
+    response::{Html, IntoResponse},
     routing::{get, post},
-    Router,
+    Router, http::StatusCode, Form,
 };
 use minijinja::render;
 use tokio::{net::TcpListener, select};
@@ -18,7 +18,6 @@ async fn main() {
     let (sender, mut receiver) = tokio::sync::broadcast::channel::<()>(1);
 
     // start tailwind when in dev mode
-    // this is always going to fail on the server and that's fine
     #[cfg(debug_assertions)]
     {
         use tokio::io::{AsyncBufReadExt, BufReader};
@@ -79,7 +78,8 @@ async fn main() {
     let router = Router::new()
         .route("/", get(home))
         .route("/day/:day", get(solve))
-        .route("/day07/part1", post(day07::handle_part1))
+        .route("/day/:day/part1", post(solve_part1))
+        .route("/day/:day/part2", post(solve_part2))
         .nest_service("/static", ServeDir::new("static"));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
@@ -108,7 +108,9 @@ async fn home() -> Html<String> {
         })
         .collect();
     days.sort();
-    let days: Vec<String> = days.into_iter().map(|day| day.replace("0", "")).collect();
+    let days: Vec<String> = days.into_iter()
+        .filter_map(|day| if day.starts_with('0') { day.strip_prefix('0').map(|s| s.to_string()) } else { Some(day) })
+        .collect();
 
     Html(layout!(
         "../assets/layouts/root.html",
@@ -120,59 +122,102 @@ async fn home() -> Html<String> {
     ))
 }
 
-async fn solve(Path(day): Path<i32>) -> Html<String> {
-    let function: fn() -> Solutions = match day {
-        1 => day01::solve,
-        2 => day02::solve,
-        3 => day03::solve,
-        4 => day04::solve,
-        5 => day05::solve,
-        6 => day06::solve,
-        7 => day07::solve,
-        8 => day08::solve,
-        9 => day09::solve,
-        // 10 => day10::solve,
-        // 11 => day11::solve,
-        // 12 => day12::solve,
-        // 13 => day13::solve,
-        // 14 => day14::solve,
-        // 15 => day15::solve,
-        // 16 => day16::solve,
-        // 17 => day17::solve,
-        // 18 => day18::solve,
-        // 19 => day19::solve,
-        // 20 => day20::solve,
-        // 21 => day21::solve,
-        // 22 => day22::solve,
-        // 23 => day23::solve,
-        // 24 => day24::solve,
-        // 25 => day25::solve,
-        _ => {
-            return Html(String::new());
-        }
+async fn solve(Path(day): Path<u8>) -> impl IntoResponse {
+    if day > 25 {
+        (StatusCode::NOT_FOUND, Html(String::new()))
+    } else {
+        (
+            StatusCode::OK,
+            Html(layout!(
+                "../assets/layouts/root.html",
+                "../assets/layouts/app.html",
+                render!(
+                    include_str!("../assets/templates/solutions.html"),
+                    day => day
+                )
+            ))
+        )
+    }
+}
+
+async fn get_part1<D: Day>(input: String) -> String {
+    D::part1(input).await
+}
+
+async fn get_part2<D: Day>(input: String) -> String {
+    D::part2(input).await
+}
+
+async fn solve_part1(Path(day): Path<u8>, Form(input): Form<PartInput>) -> impl IntoResponse {
+    // I am supremely disappointed that I didn't find a better way to do this.
+    // At least this way implementing the Day trait is enforced.
+    // I am still somewhat tempted to try making a function-like proc-macro and add
+    // two routes for each day rather than 25 days for 2 routes.
+    let output = match day {
+        1 =>  get_part1::<day01::Day01>(input.input).await,
+        2 =>  get_part1::<day02::Day02>(input.input).await,
+        3 =>  get_part1::<day03::Day03>(input.input).await,
+        4 =>  get_part1::<day04::Day04>(input.input).await,
+        5 =>  get_part1::<day05::Day05>(input.input).await,
+        6 =>  get_part1::<day06::Day06>(input.input).await,
+        7 =>  get_part1::<day07::Day07>(input.input).await,
+        8 =>  get_part1::<day08::Day08>(input.input).await,
+        9 =>  get_part1::<day09::Day09>(input.input).await,
+        10 =>  get_part1::<day10::Day10>(input.input).await,
+        11 =>  get_part1::<day11::Day11>(input.input).await,
+        12 =>  get_part1::<day12::Day12>(input.input).await,
+        13 =>  get_part1::<day13::Day13>(input.input).await,
+        14 =>  get_part1::<day14::Day14>(input.input).await,
+        15 =>  get_part1::<day15::Day15>(input.input).await,
+        16 =>  get_part1::<day16::Day16>(input.input).await,
+        17 =>  get_part1::<day17::Day17>(input.input).await,
+        18 =>  get_part1::<day18::Day18>(input.input).await,
+        19 =>  get_part1::<day19::Day19>(input.input).await,
+        20 =>  get_part1::<day20::Day20>(input.input).await,
+        21 =>  get_part1::<day21::Day21>(input.input).await,
+        22 =>  get_part1::<day22::Day22>(input.input).await,
+        23 =>  get_part1::<day23::Day23>(input.input).await,
+        24 =>  get_part1::<day24::Day24>(input.input).await,
+        25 =>  get_part1::<day25::Day25>(input.input).await,
+        _ => { return (StatusCode::NOT_FOUND, Html(format!("Day {day} not found"))); }
     };
 
-    let Solutions(part1, part2) = function();
+    (StatusCode::OK, Html(output))
+}
 
-    if day == 7 {
-        Html(layout!(
-            "../assets/layouts/root.html",
-            "../assets/layouts/app.html",
-            render!(
-                include_str!("../assets/templates/day07.html"),
-                part2 => part2,
-            )
-        ))
-    } else {
-        Html(layout!(
-            "../assets/layouts/root.html",
-            "../assets/layouts/app.html",
-            render!(
-                include_str!("../assets/templates/solutions.html"),
-                day => day,
-                part1 => part1,
-                part2 => part2,
-            )
-        ))
-    }
+async fn solve_part2(Path(day): Path<u8>, Form(input): Form<PartInput>) -> impl IntoResponse {
+    // I am supremely disappointed that I didn't find a better way to do this.
+    // At least this way implementing the Day trait is enforced.
+    // I am still somewhat tempted to try making a function-like proc-macro and add
+    // two routes for each day rather than 25 days for 2 routes.
+    let output = match day {
+        1 =>  get_part2::<day01::Day01>(input.input).await,
+        2 =>  get_part2::<day02::Day02>(input.input).await,
+        3 =>  get_part2::<day03::Day03>(input.input).await,
+        4 =>  get_part2::<day04::Day04>(input.input).await,
+        5 =>  get_part2::<day05::Day05>(input.input).await,
+        6 =>  get_part2::<day06::Day06>(input.input).await,
+        7 =>  get_part2::<day07::Day07>(input.input).await,
+        8 =>  get_part2::<day08::Day08>(input.input).await,
+        9 =>  get_part2::<day09::Day09>(input.input).await,
+        10 =>  get_part2::<day10::Day10>(input.input).await,
+        11 =>  get_part2::<day11::Day11>(input.input).await,
+        12 =>  get_part2::<day12::Day12>(input.input).await,
+        13 =>  get_part2::<day13::Day13>(input.input).await,
+        14 =>  get_part2::<day14::Day14>(input.input).await,
+        15 =>  get_part2::<day15::Day15>(input.input).await,
+        16 =>  get_part2::<day16::Day16>(input.input).await,
+        17 =>  get_part2::<day17::Day17>(input.input).await,
+        18 =>  get_part2::<day18::Day18>(input.input).await,
+        19 =>  get_part2::<day19::Day19>(input.input).await,
+        20 =>  get_part2::<day20::Day20>(input.input).await,
+        21 =>  get_part2::<day21::Day21>(input.input).await,
+        22 =>  get_part2::<day22::Day22>(input.input).await,
+        23 =>  get_part2::<day23::Day23>(input.input).await,
+        24 =>  get_part2::<day24::Day24>(input.input).await,
+        25 =>  get_part2::<day25::Day25>(input.input).await,
+        _ => { return (StatusCode::NOT_FOUND, Html(format!("Day {day} not found"))); }
+    };
+
+    (StatusCode::OK, Html(output))
 }

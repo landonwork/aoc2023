@@ -1,24 +1,17 @@
-mod solutions;
+#![allow(async_fn_in_trait)]
 
+mod solutions;
 pub use solutions::*;
 
-// use axum::{response::Html, Form};
+use axum::{response::Html, Form};
 use serde::{Deserialize, Serialize};
-
-pub struct Solutions(pub String, pub String);
-
-impl Default for Solutions {
-    fn default() -> Self {
-        Self(String::new(), String::new())
-    }
-}
 
 #[macro_export]
 macro_rules! layout {
-    ($layout_name:literal, $($rest:expr),*) => {
+    ($layout_name:literal, $($rest:expr),+) => {
         minijinja::render!(
             include_str!($layout_name),
-            inner_content => $crate::layout!($($rest),*)
+            inner_content => $crate::layout!($($rest),+)
         )
     };
     ($inner:expr) => {
@@ -26,32 +19,46 @@ macro_rules! layout {
     };
 }
 
-pub fn read_input(day: &str) -> Vec<String> {
+// #[macro_export]
+// macro_rules! day {
+//     ($day_num:literal) => {
+//         Box::new($crate::
+//     };
+// }
+
+
+pub fn read_input(day: &str) -> String {
     std::fs::read_to_string(format!("input/day{day}.txt"))
         .unwrap()
-        .replace("\r", "")
-        .trim()
-        .split("\n")
-        .map(|x| x.to_owned())
-        .collect()
 }
 
 pub fn lines(s: &str) -> Vec<&str> {
-    s.trim().split("\n").collect()
+    s.trim().split('\n').collect()
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct PartInput {
-    input: String
+    pub input: String
 }
 
-// pub trait Day {
-//     fn part1(input: Form<PartInput>) -> Html<String>;
-//     fn part2(input: Form<PartInput>) -> Html<String>;
-//     fn extra(input: Form<Extra>) -> Html<String>;
-// }
-//
-// pub trait DayExtra {
-//     type Input;
-//     fn extra(input: Form<Extra>) -> Html<String>;
-// }
+pub trait Day {
+    async fn part1(_input: String) -> String {
+        "Part 1 not finished :(".into()
+    }
+    async fn part2(_input: String) -> String {
+        "Part 2 not finished :(".into()
+    }
+}
+
+pub trait DayExt: Day {
+    async fn part1_ext(Form(input): Form<PartInput>) -> Html<String> {
+        Html(<Self as Day>::part1(input.input).await)
+    }
+
+    async fn part2_ext(Form(input): Form<PartInput>) -> Html<String> {
+        Html(<Self as Day>::part2(input.input).await)
+    }
+}
+
+impl<T> DayExt for T where T: Day { }
+

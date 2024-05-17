@@ -1,6 +1,19 @@
-use crate::{read_input, Solutions};
+use crate::{lines, Day};
 
-fn part1(input: &[String]) -> i64 {
+pub struct Day06;
+
+impl Day for Day06 {
+    async fn part1(input: String) -> String {
+        part1(&lines(&input)).to_string()
+    }
+
+    async fn part2(input: String) -> String {
+        part2(&lines(&input)).to_string()
+    }
+}
+
+
+fn part1(input: &[&str]) -> i64 {
     let times: Vec<_> = input[0]
         .split_whitespace()
         .filter_map(|s| s.parse().ok())
@@ -24,27 +37,20 @@ fn ways_to_win((time, dist): (f64, f64)) -> i64 {
     }
 }
 
-fn part2(input: &[String]) -> i64 {
+fn part2(input: &[&str]) -> i64 {
     let time = input[0]
-        .split_once(":")
+        .split_once(':')
         .unwrap()
         .1
-        .replace(" ", "")
+        .replace(' ', "")
         .parse::<f64>()
         .unwrap();
     let dist = input[1]
-        .split_once(":")
+        .split_once(':')
         .unwrap()
         .1
-        .replace(" ", "")
+        .replace(' ', "")
         .parse::<f64>()
         .unwrap();
     ways_to_win((time, dist))
-}
-
-pub fn solve() -> Solutions {
-    let input = read_input("06");
-    let solution1 = part1(&input);
-    let solution2 = part2(&input);
-    Solutions(solution1.to_string(), solution2.to_string())
 }

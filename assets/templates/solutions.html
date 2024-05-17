@@ -1,5 +1,35 @@
 <h1>Day {{ day }}</h1>
-<ul>
-	<li>Part 1: {{ part1 }}</li>
-	<li>Part 2: {{ part2 }}</li>
-</ul>
+<h2><a href="/">Home</a></h2>
+<div>
+	<form>
+		<textarea placeholder="Paste your input here..." required name="input"></textarea>
+		<div id="buttons" class="flex">
+			<button
+				hx-post="/day/{{day}}/part1"
+				hx-trigger="click"
+				hx-target="#solution1"
+				hx-swap="innerHTML"
+			>
+				Solve part 1
+			</button>
+			<button
+				hx-post="/day/{{day}}/part2"
+				hx-trigger="click"
+				hx-target="#solution2"
+				hx-swap="innerHTML"
+			>
+				Solve part 2
+			</button>
+		</div>
+	</form>
+	<div id="solutions">
+		<div class="flex">
+			<p class="font-bold mr-2">Part 1:</p>
+			<p id="solution1"></p>
+		</div>
+		<div class="flex">
+			<p class="font-bold mr-2">Part 2:</p>
+			<p id="solution2"></p>
+		</div>
+	</div>
+</div>
