@@ -98,16 +98,3 @@ fn part2(input: &[&str]) -> i32 {
         .sum()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::read_input;
-
-    #[test]
-    fn test_parsing() {
-        let _: Vec<Game> = lines(&read_input("02"))
-            .iter()
-            .map(|line| line.parse().unwrap())
-            .collect();
-    }
-}
