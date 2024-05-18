@@ -1,21 +1,179 @@
-use std::collections::{VecDeque, HashSet};
+use std::{
+    cmp::{min, max},
+    collections::{HashMap, HashSet},
+};
 
-use crate::{lines, Day};
+use crate::Day;
 
 pub struct Day16;
 
 impl Day for Day16 {
     async fn part1(input: String) -> String {
-        part1(input).to_string()
+        part1(&input).to_string()
+    }
+
+    async fn part2(input: String) -> String {
+        part2(&input).to_string()
     }
 }
 
+fn part1(input: &str) -> usize {
+    let mut graph = Graph::new(input);
+    graph.add_emitter(1, 0, Direction::Right);
+    graph.n_energized()
+}
+
+fn part2(input: &str) -> usize {
+    let graph = Graph::new(input);
+
+    let left_side =   (1..=graph.n_rows).map(|n| (n,              0,              Direction::Right));
+    let right_side =  (1..=graph.n_rows).map(|n| (n,              graph.n_cols+1, Direction::Left));
+    let top_side =    (1..=graph.n_cols).map(|n| (0,              n,              Direction::Down));
+    let bottom_side = (1..=graph.n_cols).map(|n| (graph.n_rows+1, n,              Direction::Up));
+
+    left_side.chain(right_side).chain(top_side).chain(bottom_side)
+        .map(|(row, col, dir)| {
+            let mut graph = graph.clone();
+            graph.add_emitter(row, col, dir);
+            graph.n_energized()
+        })
+        .max().unwrap_or(0)
+}
+
+#[derive(Clone)]
+struct Graph {
+    nodes: HashMap<(usize, usize), Glass>,
+    edges: HashSet<Edge>,
+    n_rows: usize,
+    n_cols: usize,
+    n_emitters: usize,
+}
+
+impl Graph {
+    fn new(input: &str) -> Self {
+        let mut n_rows = 0;
+        let mut n_cols = 0;
+        let nodes: HashMap<_, _> = input.trim().lines().enumerate().flat_map(|(row, line)| {
+            n_cols = line.trim().len();
+            n_rows += 1;
+            line.trim().as_bytes().iter().enumerate().filter_map(move |(col, &b)| {
+                let glass: Glass = b.into();
+                (!matches!(glass, Glass::Empty)).then_some(((row + 1, col + 1), glass))
+            })
+        }).collect();
+
+        Self { nodes, edges: HashSet::new(), n_rows, n_cols, n_emitters: 0 }
+    }
+
+    fn add_emitter(&mut self, row: usize, col: usize, dir: Direction) {
+        self.nodes.insert((row, col), Glass::Emitter);
+        self.n_emitters += 1;
+        self.add_beams((row, col), dir);
+    }
+
+    fn out_of_bounds(&self, row: usize, col: usize) -> bool {
+        row < 1 || col < 1 || row > self.n_rows || col > self.n_cols
+    }
+
+    fn add_beams(&mut self, start: (usize, usize), dir: Direction) {
+        let mut coords = start.clone();
+        // Would love a do-while. Instead we have loop.
+        loop {
+            coords = {
+                let new_coords = match dir {
+                    Direction::Right => (coords.0, coords.1 + 1),
+                    Direction::Left => (coords.0, coords.1 - 1),
+                    Direction::Down => (coords.0 + 1, coords.1),
+                    Direction::Up => (coords.0 - 1, coords.1),
+                };
+                // Are these coordinates out of bounds?
+                // - Add an edge and terminate
+                if self.out_of_bounds(new_coords.0, new_coords.1) {
+                    self.edges.insert(ordered(start, coords));
+                    break;
+                }
+                new_coords
+            };
+
+            // Do these coordinates match the coordinates of any nodes?
+            // - Does the edge exist?
+            // - - Yes => terminate
+            // - - No  => add edge and recurse
+            if let Some(glass) = self.nodes.get(&coords) {
+                let edge = ordered(start, coords);
+                if self.edges.contains(&edge) {
+                    break;
+                } else {
+                    self.edges.insert(edge);
+                    match (glass, dir) {
+                        (Glass::ReflectForward, Direction::Up)
+                            | (Glass::ReflectBackward, Direction::Down)
+                            | (Glass::SplitHorizontal, Direction::Right) => {
+                            self.add_beams(coords, Direction::Right);
+                        }
+                        (Glass::ReflectForward, Direction::Down)
+                            | (Glass::ReflectBackward, Direction::Up)
+                            | (Glass::SplitHorizontal, Direction::Left) => {
+                            self.add_beams(coords, Direction::Left);
+                        }
+                        (Glass::ReflectForward, Direction::Left)
+                            | (Glass::ReflectBackward, Direction::Right)
+                            | (Glass::SplitVertical, Direction::Down) => {
+                            self.add_beams(coords, Direction::Down);
+                        }
+                        (Glass::ReflectForward, Direction::Right)
+                            | (Glass::ReflectBackward, Direction::Left)
+                            | (Glass::SplitVertical, Direction::Up) => {
+                            self.add_beams(coords, Direction::Up);
+                        }
+                        (Glass::SplitHorizontal, Direction::Up | Direction::Down) => {
+                            self.add_beams(coords, Direction::Left);
+                            self.add_beams(coords, Direction::Right);
+                        }
+                        (Glass::SplitVertical, Direction::Left | Direction::Right) => {
+                            self.add_beams(coords, Direction::Up);
+                            self.add_beams(coords, Direction::Down);
+                        }
+                        // unreachable-ish
+                        (Glass::Empty | Glass::Emitter, _) => { break; }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    fn n_energized(&self) -> usize {
+        let energized: HashSet<_> = self.edges.iter()
+            .flat_map(|(start, end)| {
+                if start.0 == end.0 {
+                    let (a, b) = ordered(start.1, end.1);
+                    (a..=b).map(|x| (start.0, x)).collect::<Vec<_>>()
+                } else {
+                    let (a, b) = ordered(start.0, end.0);
+                    (a..=b).map(|x| (x, start.1)).collect::<Vec<_>>()
+                }
+            })
+            .collect();
+        energized.len() - self.n_emitters
+    }
+}
+
+fn ordered<T: Ord + Copy>(c1: T, c2: T) -> (T, T) {
+    (min(c1, c2), max(c1, c2))
+}
+
+type Edge = ((usize, usize), (usize, usize));
+
+#[allow(dead_code)] 
+#[derive(Clone, Debug)]
 enum Glass {
     SplitHorizontal,
     SplitVertical,
     ReflectForward, // forward slash '/'
     ReflectBackward, // back slash '\'
-    Empty
+    Empty,
+    Emitter,
 }
 
 #[derive(Copy, Clone)]
@@ -26,7 +184,7 @@ enum Direction {
     Right,
 }
 
-type Beam = (usize, usize, Direction);
+// type Beam = (usize, usize, Direction);
 
 impl From<u8> for Glass {
     fn from(value: u8) -> Self {
@@ -41,74 +199,39 @@ impl From<u8> for Glass {
     }
 }
 
-fn move_up((row, col, _dir): Beam, _height: usize, beams: &mut VecDeque<Beam>) {
-    if row > 0 { beams.push_back((row - 1, col, Direction::Up)); }
-}
 
-fn move_down((row, col, _dir): Beam, height: usize, beams: &mut VecDeque<Beam>) {
-    if row < height - 1 { beams.push_back((row + 1, col, Direction::Down)); }
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
+    const TEST: &str = r#"
+.|...\....
+|.-.\.....
+.....|-...
+........|.
+..........
+.........\
+..../.\\..
+.-.-/..|..
+.|....-|.\
+..//.|....
+"#;
 
-fn move_left((row, col, _dir): Beam, _width: usize, beams: &mut VecDeque<Beam>) {
-    if col > 0 { beams.push_back((row, col - 1, Direction::Left)); }
-}
-
-fn move_right((row, col, _dir): Beam, width: usize, beams: &mut VecDeque<Beam>) {
-    if col < width - 1 { beams.push_back((row, col + 1, Direction::Right)); }
-}
-
-fn part1(input: String) -> usize {
-    let map: Vec<Vec<Glass>> = lines(&input).iter().map(|line| line.as_bytes().iter().map(|&b| b.into()).collect()).collect();
-    let mut beams = VecDeque::from([(0usize, 0usize, Direction::Right)]);
-    let mut energized = HashSet::new();
-    let height = map.len();
-    let width = map[0].len();
-    let mut count = 0;
-    while let Some(beam) = beams.pop_front() {
-        if count % 1000 == 0 {
-            println!("{count}");
-        }
-        count += 1;
-        energized.insert((beam.0, beam.1));
-        match (beam.2, map.get(beam.0).and_then(|r| r.get(beam.1)).unwrap()) {
-            // Nothing happens
-            (Direction::Up, Glass::Empty | Glass::SplitVertical) => {
-                move_up(beam, height, &mut beams);
-            }
-            (Direction::Down, Glass::Empty | Glass::SplitVertical) => {
-                move_down(beam, height, &mut beams);
-            }
-            (Direction::Left, Glass::Empty | Glass::SplitHorizontal) => {
-                move_left(beam, width, &mut beams);
-            }
-            (Direction::Right, Glass::Empty | Glass::SplitHorizontal) => {
-                move_right(beam, width, &mut beams);
-            }
-            // splitting
-            (Direction::Up | Direction::Down, Glass::SplitHorizontal) => {
-                move_left(beam, width, &mut beams);
-                move_right(beam, width, &mut beams);
-            }
-            (Direction::Left | Direction::Right, Glass::SplitVertical) => {
-                move_up(beam, height, &mut beams);
-                move_down(beam, height, &mut beams);
-            }
-            // reflections
-            (Direction::Up, Glass::ReflectForward) | (Direction::Down, Glass::ReflectBackward) => { // '/'
-                move_right(beam, height, &mut beams);
-            }
-            (Direction::Down, Glass::ReflectForward) | (Direction::Up, Glass::ReflectBackward) => { // '/'
-                move_left(beam, height, &mut beams);
-            }
-            (Direction::Left, Glass::ReflectForward) | (Direction::Right, Glass::ReflectBackward) => { // '/'
-                move_down(beam, width, &mut beams);
-            }
-            (Direction::Right, Glass::ReflectForward) | (Direction::Left, Glass::ReflectBackward) => { // '/'
-                move_up(beam, width, &mut beams);
-            }
-        }
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(TEST), 46);
     }
 
-    energized.len()
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(TEST), 51);
+    }
+
+    #[test]
+    fn test_part2_solvable() {
+        let mut graph = Graph::new(TEST);
+        graph.add_emitter(0, 4, Direction::Down);
+        assert_eq!(graph.n_energized(), 51);
+    }
 }
+
