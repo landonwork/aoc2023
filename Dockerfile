@@ -10,7 +10,6 @@ FROM scratch
 COPY --from=builder /aoc2023/target/x86_64-unknown-linux-musl/release/aoc2023-server /aoc2023-server
 COPY --from=builder /aoc2023/assets /assets
 COPY --from=builder /aoc2023/static /static
-COPY --from=builder /aoc2023/input /input
 COPY --from=builder /aoc2023/src /src
 
 ENTRYPOINT ["/aoc2023-server"]
