@@ -76,7 +76,7 @@ impl Graph {
     }
 
     fn add_beams(&mut self, start: (usize, usize), dir: Direction) {
-        let mut coords = start.clone();
+        let mut coords = start;
         // Would love a do-while. Instead we have loop.
         loop {
             coords = {

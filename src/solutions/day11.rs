@@ -38,10 +38,9 @@ fn solve<const C: usize>(input: &str) -> usize {
         .collect();
     let galaxies = expand::<C>(galaxies, n_rows, n_cols);
     let pairs = pairs(galaxies);
-    let ans = pairs.into_iter()
+    pairs.into_iter()
         .map(|(gx1, gx2)| gx1.0.abs_diff(gx2.0) + gx1.1.abs_diff(gx2.1))
-        .sum();
-    ans
+        .sum()
 }
 
 fn expand<const C: usize>(mut set: HashSet<(usize, usize)>, n_rows: usize, n_cols: usize) -> HashSet<(usize, usize)> {
