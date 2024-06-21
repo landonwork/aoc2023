@@ -156,6 +156,7 @@ mod tests {
 
         let loss_fn = |x: ArrayView1<f64>| {
             // f(x, y) = sum_i ( (r(0) - h_i(0)) \cdot (dr x dh_i) )
+            println!("{:?}", x.view());
             let r0 = x.slice(s![0..3]);
             let dr = x.slice(s![3..6]);
 
@@ -165,20 +166,22 @@ mod tests {
                 let dh_i: Array1<f64> = dh.slice(s![i, 0..3]).to_owned();
                 let diff: Array1<f64> = r0.to_owned() - h0_i;
                 let product: Array1<f64> = cross(dr.to_owned(), dh_i);
-                sum += dot(diff, product);
+                let dotted = dot(diff, product);
+                sum += dotted * dotted;
             }
+            println!("{sum}");
             sum
         };
 
         let minimizer = NelderMeadBuilder::default()
-            .xtol(1e-6f64)
-            .ftol(1e-6f64)
+            .xtol(0.5)
+            .ftol(1.0)
             .maxiter(50000)
             .build()
             .unwrap();
 
         // Set the starting guess
-        let args = Array::from_vec(vec![1.; 6]);
+        let args = Array::from_vec(vec![23.5, 12.7, 10.5, -3., 1., 2.]);
         
         // Run the optimization
         let ans: Array1<f64> = minimizer.minimize(&loss_fn, args.view());
